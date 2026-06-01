@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    window.onerror = function(msg, url, line, col, error) {
+        var err = document.createElement('div');
+        err.style = 'position:fixed;top:0;left:0;background:red;color:white;z-index:9999;padding:20px;font-size:20px;max-width:100%;word-break:break-all;';
+        err.innerHTML = 'ERROR: ' + msg + '<br>Line: ' + line + '<br>Col: ' + col + '<br>Stack: ' + (error ? error.stack : 'N/A');
+        document.body.appendChild(err);
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+        var err = document.createElement('div');
+        err.style = 'position:fixed;top:0;left:0;background:red;color:white;z-index:9999;padding:20px;font-size:20px;max-width:100%;word-break:break-all;';
+        err.innerHTML = 'UNHANDLED REJECTION: ' + event.reason + '<br>Stack: ' + (event.reason && event.reason.stack ? event.reason.stack : 'N/A');
+        document.body.appendChild(err);
+    });
+
+    // Dynamic cache busting for CSS
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'style.css?v=' + Date.now();
+    document.head.appendChild(link);
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System | Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="orb-container container-1"><div class="floating-orb orb-1"></div></div>
+    <div class="orb-container container-2"><div class="floating-orb orb-2"></div></div>
+    <div id="app">
+        <!-- Content will be injected here by app.js -->
+    </div>
+
+    <script>
+    // Dynamic cache busting for JS module
+    var script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'app.js?v=' + Date.now();
+    document.body.appendChild(script);
+    </script>
+</body>
+</html>
