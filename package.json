@@ -1,0 +1,11 @@
+{
+  "name": "attendance-management-system",
+  "version": "1.0.0",
+  "description": "Premium Attendance Management System",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "python server.py"
+  },
+  "author": "Neha Gupta",
+  "license": "ISC"
+}

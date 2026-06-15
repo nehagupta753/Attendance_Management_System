@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Feature Cards - Preview</title>
+    <!-- Tailwind CSS v4 Browser Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-up {
+            opacity: 0;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-[#0A0A0B]">
+    <div class="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center p-6 md:p-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-3 lg:gap-3 w-full max-w-[936px]">
+            
+            <!-- Card 1 (Hardware) -->
+            <div class="relative flex flex-col justify-start items-start w-full max-w-[260px] md:max-w-[300px] group mx-auto animate-fade-up" style="animation-delay: 0.1s;">
+                <!-- Glow Background -->
+                <div class="absolute w-full h-[260px] md:h-[300px] opacity-60 rounded-[40px] pointer-events-none" style="background: linear-gradient(137deg, #FF3D77 0%, #FFB1CE 45%, #FF9D3C 100%); filter: blur(45px);"></div>
+                <!-- Foreground Card -->
+                <div class="relative self-stretch h-[260px] md:h-[300px] rounded-[40px] z-10 overflow-hidden border-[8px] border-transparent" style="background: linear-gradient(#1A1A1C, #1A1A1C) padding-box, linear-gradient(137deg, #FF3D77 0%, #FFB1CE 45%, #FF9D3C 100%) border-box;">
+                    <!-- Inner Content -->
+                    <div class="w-full h-full p-7 flex flex-col justify-between">
+                        <div class="text-white/90">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-medium text-xl mb-3 tracking-tight">Hardware</h3>
+                            <p class="text-gray-400 text-[14px] leading-[1.6] font-normal selection:bg-white/20">My entire desktop setup is built for power. It is silent, durable, and holds my focus.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 (Studio) -->
+            <div class="relative flex flex-col justify-start items-start w-full max-w-[260px] md:max-w-[300px] group mx-auto animate-fade-up" style="animation-delay: 0.2s;">
+                <!-- Glow Background -->
+                <div class="absolute w-full h-[260px] md:h-[300px] opacity-60 rounded-[40px] pointer-events-none" style="background: linear-gradient(137deg, #FFFFFF 0%, #7DD3FC 45%, #06B6D4 100%); filter: blur(45px);"></div>
+                <!-- Foreground Card -->
+                <div class="relative self-stretch h-[260px] md:h-[300px] rounded-[40px] z-10 overflow-hidden border-[8px] border-transparent" style="background: linear-gradient(#1A1A1C, #1A1A1C) padding-box, linear-gradient(137deg, #FFFFFF 0%, #7DD3FC 45%, #06B6D4 100%) border-box;">
+                    <!-- Inner Content -->
+                    <div class="w-full h-full p-7 flex flex-col justify-between">
+                        <div class="text-white/90">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.63-.77 1.63-1.7 0-.43-.16-.83-.41-1.16a.46.46 0 0 1-.12-.3c0-.26.22-.47.47-.47H15c5.52 0 10-4.48 10-10 0-5.5-4.5-10-10-10z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-medium text-xl mb-3 tracking-tight">Studio</h3>
+                            <p class="text-gray-400 text-[14px] leading-[1.6] font-normal selection:bg-white/20">Studio is where I define every single pixel. It is the hub for each canvas I deliver.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 (Motion) -->
+            <div class="relative flex flex-col justify-start items-start w-full max-w-[260px] md:max-w-[300px] group mx-auto animate-fade-up" style="animation-delay: 0.3s;">
+                <!-- Glow Background -->
+                <div class="absolute w-full h-[260px] md:h-[300px] opacity-60 rounded-[40px] pointer-events-none" style="background: linear-gradient(137deg, #4361EE 0%, #E0AEFF 45%, #F72585 100%); filter: blur(45px);"></div>
+                <!-- Foreground Card -->
+                <div class="relative self-stretch h-[260px] md:h-[300px] rounded-[40px] z-10 overflow-hidden border-[8px] border-transparent" style="background: linear-gradient(#1A1A1C, #1A1A1C) padding-box, linear-gradient(137deg, #4361EE 0%, #E0AEFF 45%, #F72585 100%) border-box;">
+                    <!-- Inner Content -->
+                    <div class="w-full h-full p-7 flex flex-col justify-between">
+                        <div class="text-white/90">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap"><path d="M4 14h6v8l10-12h-6V2Z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-medium text-xl mb-3 tracking-tight">Motion</h3>
+                            <p class="text-gray-400 text-[14px] leading-[1.6] font-normal selection:bg-white/20">I use Motion to build lively prototypes, bridging the gap between views and code.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
