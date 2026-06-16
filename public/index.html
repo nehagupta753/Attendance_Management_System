@@ -18,7 +18,7 @@
     // Dynamic cache busting for CSS
     var link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'style.css?v=' + Date.now();
+    link.href = '../src/style.css?v=' + Date.now();
     document.head.appendChild(link);
     </script>
 
@@ -44,7 +44,7 @@
     // Dynamic cache busting for JS module
     var script = document.createElement('script');
     script.type = 'module';
-    script.src = 'app.js?v=' + Date.now();
+    script.src = '../src/app.js?v=' + Date.now();
     document.body.appendChild(script);
     </script>
 </body>
