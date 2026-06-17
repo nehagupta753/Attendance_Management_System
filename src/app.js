@@ -1632,7 +1632,7 @@ function renderMainLayout() {
         <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar()"></div>
         <nav class="sidebar">
             <div class="sidebar-header" style="justify-content: center; align-items: center; flex-direction: column; gap: 1rem; padding: 0.5rem 0.5rem 1.25rem 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 1.5rem;">
-               <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+               <img src="https://acropolis.in/wp-content/uploads/2023/03/unnamed-1024x203.png"
 style="max-width:90%;max-height:50px;object-fit:contain;">
                 ${
                   isTeacher
