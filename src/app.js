@@ -208,7 +208,7 @@ function renderLogin() {
         <div class="auth-container" style="flex-direction: column; padding: 2rem; justify-content: center; overflow-y: auto; min-height: 100vh; height: auto;">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: center; margin-bottom: 1.5rem; text-align: center;">
-                    <img src="https://www.vidyavision.com/CollegeUploads/Logos/2017-03-7-12-46-08_atc-logo.jpg" alt="Acropolis Logo" style="height: 100px; width: auto; max-width: 100%; object-fit: contain;">
+                    <img src="https://github.com/nehagupta753/Attendance_Management_System/blob/main/public/logo.png?raw=true" alt="Acropolis Logo" style="height: 100px; width: auto; max-width: 100%; object-fit: contain;">
                 </div>
                 <h1 style="font-family: Georgia, serif; font-size: 2.25rem; font-weight: 500; color: #00254d; margin-bottom: 0.5rem; text-align: center; letter-spacing: -0.01em;">
                     Attendance Management System
