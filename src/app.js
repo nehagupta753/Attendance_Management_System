@@ -2232,6 +2232,47 @@ window.onManualFormChange = () => {
   currentState.activeTimetableEntry = null;
   window.checkTeacherSelectionValid();
   window.filterConductingTeachers([]);
+
+  // Dynamically filter subjects based on Year + Branch + Section
+  const year = document.getElementById("sel-year")?.value || "";
+  const branch = document.getElementById("sel-branch")?.value || "";
+  const section = document.getElementById("sel-section")?.value || "";
+  const teacher = currentState.teacherData;
+
+  if (year && branch && section && teacher) {
+    // Find class matching selected fields
+    const targetClass = currentState.classes.find(
+      (c) => c.year === year && c.branch === branch && c.section === section
+    );
+    if (targetClass) {
+      // Find subjects this teacher teaches in this class based on teacher assignments or timetable
+      const classTimetableSlots = currentState.timetable.filter(
+        (t) =>
+          t.class_id === targetClass.id &&
+          (t.teacher_id === teacher.id || (t.teacher_ids && t.teacher_ids.includes(teacher.id)))
+      );
+      const classSubjectIds = [...new Set(classTimetableSlots.map((t) => t.subject_id))];
+      const matchedSubjects = currentState.subjects.filter((s) => classSubjectIds.includes(s.id));
+
+      const populateSelect = (selectId) => {
+        const selectEl = document.getElementById(selectId);
+        if (selectEl) {
+          const currentVal = selectEl.value;
+          selectEl.innerHTML = `<option value="" disabled>Select Subject</option>` + 
+            matchedSubjects.map((s) => `<option value="${s.id}">${s.code} - ${s.name}</option>`).join("");
+          if (matchedSubjects.some(s => s.id === currentVal)) {
+            selectEl.value = currentVal;
+          } else {
+            selectEl.value = "";
+          }
+        }
+      };
+      
+      populateSelect("sel-subject");
+      populateSelect("sel-subject-b1");
+      populateSelect("sel-subject-b2");
+    }
+  }
 };
 
 window.filterConductingTeachers = (conductingTeacherIds) => {
@@ -2293,6 +2334,7 @@ window.populateMarkAttendanceForm = (
   isLab,
   batch,
   teacherIdsStr,
+  lectureNo = 1,
 ) => {
   document.getElementById("sel-year").value = year;
   document.getElementById("sel-branch").value = branch;
@@ -2307,6 +2349,10 @@ window.populateMarkAttendanceForm = (
 
   document.getElementById("sel-class-type").value = isLab ? "Lab" : "Lecture";
   window.toggleMarkAttendanceType(isLab ? "Lab" : "Lecture");
+
+  if (document.getElementById("sel-lecture-no")) {
+    document.getElementById("sel-lecture-no").value = String(lectureNo);
+  }
 
   if (isLab) {
     const checkB1 = document.getElementById("sel-batch-b1");
@@ -2644,6 +2690,17 @@ async function renderMarkAttendance(container) {
                         ${visibleSubjects.map((s) => `<option value="${s.id}">${s.code} - ${s.name}</option>`).join("")}
                     </select>
                 </div>
+                <div class="form-group" id="sel-lecture-no-container">
+                    <label>Lecture No</label>
+                    <select id="sel-lecture-no" style="width:100%;">
+                        <option value="1" selected>Lecture 1</option>
+                        <option value="2">Lecture 2</option>
+                        <option value="3">Lecture 3</option>
+                        <option value="4">Lecture 4</option>
+                        <option value="5">Lecture 5</option>
+                        <option value="6">Lecture 6</option>
+                    </select>
+                </div>
                 <div class="form-group" id="sel-batch-container">
                     <label style="margin-bottom: 0.5rem; display:block;">Filter by Batch</label>
                     <div style="display:flex; gap:1.5rem; align-items:center; height: 42px; flex-wrap: wrap;">
@@ -2721,7 +2778,27 @@ window.openLectureMark = (timetableId, teacherIdsStr) => {
   const form = document.getElementById("lecture-mark-form");
   if (form) form.style.display = "block";
   form.scrollIntoView({ behavior: "smooth" });
-  setTimeout(() => {
+  setTimeout(async () => {
+    // Determine the lecture number based on existing attendance submissions for today
+    let lectureNo = 1;
+    try {
+      const todayDate = currentState.selectedMarkAttendanceDate || new Date().toLocaleDateString("en-CA");
+      const { data } = await supabaseClient
+        .from("attendance_records")
+        .select("lecture_no")
+        .eq("date", todayDate)
+        .eq("class_id", tEntry.class_id)
+        .eq("subject_id", tEntry.subject_id);
+      if (data && data.length > 0) {
+        const markedLectures = data.map(r => r.lecture_no || 1);
+        const maxLecture = Math.max(...markedLectures);
+        // Default to the next lecture slot
+        lectureNo = maxLecture + 1;
+      }
+    } catch (e) {
+      console.error("Error auto-calculating next lecture no:", e);
+    }
+    
     window.populateMarkAttendanceForm(
       tEntry.classes?.year,
       tEntry.classes?.branch,
@@ -2730,6 +2807,7 @@ window.openLectureMark = (timetableId, teacherIdsStr) => {
       tEntry.is_lab,
       tEntry.batch || "",
       teacherIdsStr,
+      lectureNo
     );
   }, 50);
 };
@@ -2841,11 +2919,13 @@ window.loadStudentList = async () => {
     let existingRecords = [];
     if (class_id) {
       try {
+        const lectureNoVal = parseInt(document.getElementById("sel-lecture-no")?.value || "1", 10);
         let query = supabaseClient
           .from("attendance_records")
           .select("id, student_id, status")
           .eq("date", dateVal)
-          .eq("class_id", class_id);
+          .eq("class_id", class_id)
+          .eq("lecture_no", lectureNoVal);
 
         if (isLab) {
           const subjectsList = [b1SubjectVal, b2SubjectVal].filter(Boolean);
@@ -3111,6 +3191,7 @@ window.submitAttendance = async () => {
 
       if (!recordSubjectId) return;
 
+      const lectureNoVal = parseInt(document.getElementById("sel-lecture-no")?.value || "1", 10);
       const rec = {
         student_id: studentId,
         teacher_id: teacherIds[0],
@@ -3120,6 +3201,7 @@ window.submitAttendance = async () => {
         date: document.getElementById("sel-date").value,
         status: status,
         batch: recordBatch,
+        lecture_no: lectureNoVal,
       };
       if (recordId) {
         rec.id = recordId;
@@ -3136,7 +3218,7 @@ window.submitAttendance = async () => {
 
   const { error } = await supabaseClient
     .from("attendance_records")
-    .upsert(records, { onConflict: "student_id,class_id,subject_id,date" });
+    .upsert(records, { onConflict: "student_id,class_id,subject_id,date,lecture_no" });
   if (error) {
     showToast(error.message, "error");
   } else {
@@ -3200,12 +3282,13 @@ async function renderStudentHistory(container) {
   const sessionMap = new Map();
 
   filteredHistory.forEach((record) => {
-    const key = `${record.date}-${record.class_id}-${record.subject_id}-${record.batch || "All"}`;
+    const key = `${record.date}-${record.class_id}-${record.subject_id}-${record.batch || "All"}-${record.lecture_no || 1}`;
     if (!sessionMap.has(key)) {
       const session = {
         id: key,
         date: record.date,
         batch: record.batch || null,
+        lecture_no: record.lecture_no || 1,
         teacher_ids: record.teacher_ids || [record.teacher_id],
         class: record.classes || {
           branch: record.students?.branch,
@@ -3282,7 +3365,7 @@ async function renderStudentHistory(container) {
                             (s) => `
                             <tr>
                                 <td>${s.date}</td>
-                                <td><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">${s.class?.branch} ${s.class?.year}-${s.class?.section}${s.batch ? ` (${s.batch})` : ""}</span></td>
+                                <td><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">${s.class?.branch} ${s.class?.year}-${s.class?.section}${s.batch ? ` (${s.batch})` : ""} · Lec ${s.lecture_no}</span></td>
                                 <td style="font-weight: 500;">${s.subject?.name || "Unknown"}</td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -3362,8 +3445,8 @@ window.viewSessionDetails = (sessionId) => {
                 <div style="font-size: 1.25rem; font-weight: 600;">${session.subject?.name}</div>
             </div>
             <div>
-                <label style="color: var(--primary); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Class / Batch</label>
-                <div style="font-size: 1.25rem; font-weight: 600;">${session.class?.branch} ${session.class?.year}-${session.class?.section} ${session.batch ? `(${session.batch})` : ""}</div>
+                <label style="color: var(--primary); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Class / Batch / Lecture</label>
+                <div style="font-size: 1.25rem; font-weight: 600;">${session.class?.branch} ${session.class?.year}-${session.class?.section} ${session.batch ? `(${session.batch})` : ""} · Lecture ${session.lecture_no}</div>
             </div>
             <div>
                 <label style="color: var(--primary); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Date</label>
