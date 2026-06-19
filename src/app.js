@@ -1224,36 +1224,43 @@ window.renderStudentLayout = async () => {
                                         <option value="Female">Female</option>
                                         <option value="Other">Other</option>
                                     </select>
+                                    <div id="stu-upd-gender-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Caste</label>
                                     <input type="text" id="stu-upd-caste" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. General / OBC / SC / ST">
+                                    <div id="stu-upd-caste-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Email Address</label>
                                     <input type="email" id="stu-upd-email" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-email-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Phone Number</label>
                                     <input type="tel" id="stu-upd-phone" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-phone-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Father's Name</label>
                                     <input type="text" id="stu-upd-father-name" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-father-name-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Mother's Name</label>
                                     <input type="text" id="stu-upd-mother-name" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-mother-name-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Father's Phone Number</label>
                                     <input type="tel" id="stu-upd-father-phone" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-father-phone-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <!-- Academic Group -->
@@ -1264,31 +1271,82 @@ window.renderStudentLayout = async () => {
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">10th Board</label>
                                     <input type="text" id="stu-upd-10-board" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. CBSE / ICSE">
+                                    <div id="stu-upd-10-board-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">10th Percentage (%)</label>
                                     <input type="number" step="0.01" id="stu-upd-10-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-10-pct-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">12th Board</label>
                                     <input type="text" id="stu-upd-12-board" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. CBSE / State Board">
+                                    <div id="stu-upd-12-board-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">12th Percentage (%)</label>
                                     <input type="number" step="0.01" id="stu-upd-12-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-12-pct-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Diploma Percentage (%)</label>
                                     <input type="number" step="0.01" id="stu-upd-diploma-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-diploma-pct-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155;">Current CGPA</label>
                                     <input type="number" step="0.01" id="stu-upd-cgpa" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div id="stu-upd-cgpa-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
+                                </div>
+
+                                <!-- Semester-wise Attendance Group -->
+                                <div style="display:flex; flex-direction:column; gap:1rem; grid-column:1 / -1; margin-top:1rem; border-top:1px solid var(--border); padding-top:1.5rem;">
+                                    <h4 style="margin:0; color:var(--primary); font-size:0.95rem; font-weight:600;">Semester-wise Attendance (%)</h4>
+                                </div>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem; grid-column:1 / -1;">
+                                    ${[1, 2, 3, 4, 5, 6, 7, 8].map(num => `
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label style="font-size:0.8rem; font-weight:700; color:#334155;">Semester ${num}</label>
+                                            <input type="number" step="0.01" min="0" max="100" id="stu-upd-sem-${num}" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. 85.50">
+                                            <div id="stu-upd-sem-${num}-current" style="font-size:0.72rem; color:#d97706; margin-top:0.25rem; display:none;"></div>
+                                        </div>
+                                    `).join("")}
+                                </div>
+
+                                <!-- Achievements Group -->
+                                <div style="display:flex; flex-direction:column; gap:1rem; grid-column:1 / -1; margin-top:1rem; border-top:1px solid var(--border); padding-top:1.5rem;">
+                                    <h4 style="margin:0; color:var(--primary); font-size:0.95rem; font-weight:600;">Student Achievements</h4>
+                                </div>
+                                <div style="grid-column:1 / -1; display:flex; flex-direction:column; gap:1rem;">
+                                    <div id="stu-upd-ach-list-container" style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01);">
+                                        <!-- Dynamic Achievements List loaded here -->
+                                    </div>
+                                    <div id="stu-upd-achievements-current" style="font-size:0.72rem; color:#d97706; margin-bottom:0.5rem; display:none;"></div>
+                                    
+                                    <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.75rem; align-items:end; background:var(--bg-dark); padding:1rem; border-radius:0.5rem; border:1px solid var(--border);">
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label style="font-size:0.8rem; font-weight:700; color:#334155;">Type</label>
+                                            <select id="stu-upd-new-ach-type" style="padding:0.65rem 0.75rem; background:#ffffff; border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                                <option value="Internship">Internship</option>
+                                                <option value="Hackathon">Hackathon</option>
+                                                <option value="Sports">Sports</option>
+                                                <option value="Certifications">Certifications</option>
+                                                <option value="Others">Others</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label style="font-size:0.8rem; font-weight:700; color:#334155;">Achievement Details / Title</label>
+                                            <input type="text" id="stu-upd-new-ach-name" placeholder="e.g. Winner at Smart India Hackathon 2026" style="padding:0.65rem 0.75rem; background:#ffffff; border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                        </div>
+                                        <button type="button" class="btn-primary" onclick="window.addStudentUpdAchievement()" style="background:#10b981; border-color:#10b981; padding:0.65rem 1.25rem; font-size:0.85rem; font-weight:700; border-radius:0.5rem; cursor:pointer;">
+                                            + Add
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1449,7 +1507,9 @@ window.initStudentUpdateProfileTab = async () => {
       class_12_board: student.class_12_board || "",
       class_12_percent: student.class_12_percent || "",
       diploma_percent: student.diploma_percent || "",
-      current_cgpa: student.current_cgpa || ""
+      current_cgpa: student.current_cgpa || "",
+      sem_attendance: student.sem_attendance || {},
+      achievements: student.achievements || []
     };
 
     let valuesToUse = { ...currentValues };
@@ -1458,7 +1518,12 @@ window.initStudentUpdateProfileTab = async () => {
 
     if (pending) {
       hasPending = true;
-      valuesToUse = { ...currentValues, ...(pending.new_value || {}) };
+      valuesToUse = { 
+        ...currentValues, 
+        ...(pending.new_value || {}),
+        sem_attendance: { ...(currentValues.sem_attendance || {}), ...(pending.new_value?.sem_attendance || {}) },
+        achievements: pending.new_value?.achievements !== undefined ? pending.new_value.achievements : currentValues.achievements
+      };
       pendingDateStr = new Date(pending.requested_at).toLocaleDateString("en-US", {
         year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
       });
@@ -1503,6 +1568,122 @@ window.initStudentUpdateProfileTab = async () => {
     setVal("stu-upd-diploma-pct", valuesToUse.diploma_percent);
     setVal("stu-upd-cgpa", valuesToUse.current_cgpa);
 
+    // Populate Semester Attendance
+    for (let num = 1; num <= 8; num++) {
+      const curVal = currentValues.sem_attendance?.[num] !== undefined ? currentValues.sem_attendance[num] : "";
+      const useVal = valuesToUse.sem_attendance?.[num] !== undefined ? valuesToUse.sem_attendance[num] : "";
+      setVal(`stu-upd-sem-${num}`, useVal);
+      
+      const currentLabel = document.getElementById(`stu-upd-sem-${num}-current`);
+      const inputEl = document.getElementById(`stu-upd-sem-${num}`);
+      if (currentLabel && inputEl) {
+        if (hasPending && String(curVal).trim() !== String(useVal).trim()) {
+          currentLabel.textContent = `Current: ${curVal !== "" ? curVal + "%" : "None"}`;
+          currentLabel.style.display = "block";
+          inputEl.style.borderColor = "rgba(245, 158, 11, 0.5)";
+        } else {
+          currentLabel.style.display = "none";
+          inputEl.style.borderColor = "";
+        }
+      }
+    }
+
+    // Set comparison labels for standard fields
+    const fieldMapping = {
+      gender: "stu-upd-gender",
+      caste: "stu-upd-caste",
+      email: "stu-upd-email",
+      phone: "stu-upd-phone",
+      father_name: "stu-upd-father-name",
+      mother_name: "stu-upd-mother-name",
+      father_phone: "stu-upd-father-phone",
+      class_10_board: "stu-upd-10-board",
+      class_10_percent: "stu-upd-10-pct",
+      class_12_board: "stu-upd-12-board",
+      class_12_percent: "stu-upd-12-pct",
+      diploma_percent: "stu-upd-diploma-pct",
+      current_cgpa: "stu-upd-cgpa"
+    };
+    
+    Object.entries(fieldMapping).forEach(([key, id]) => {
+      let curVal = currentValues[key];
+      let useVal = valuesToUse[key];
+      
+      if (key === "gender") {
+        if (curVal) curVal = curVal.charAt(0).toUpperCase() + curVal.slice(1).toLowerCase();
+        if (useVal) useVal = useVal.charAt(0).toUpperCase() + useVal.slice(1).toLowerCase();
+      }
+      
+      const currentLabel = document.getElementById(`${id}-current`);
+      const inputEl = document.getElementById(id);
+      if (currentLabel && inputEl) {
+        if (hasPending && String(curVal).trim() !== String(useVal).trim()) {
+          currentLabel.textContent = `Current: ${curVal !== "" ? curVal : "None"}`;
+          currentLabel.style.display = "block";
+          inputEl.style.borderColor = "rgba(245, 158, 11, 0.5)";
+        } else {
+          currentLabel.style.display = "none";
+          inputEl.style.borderColor = "";
+        }
+      }
+    });
+
+    // Populate achievements
+    window._studentPendingAchievements = Array.isArray(valuesToUse.achievements) ? [...valuesToUse.achievements] : [];
+    
+    window.renderStudentUpdAchievementsList = () => {
+      const container = document.getElementById("stu-upd-ach-list-container");
+      if (!container) return;
+      if (window._studentPendingAchievements.length === 0) {
+        container.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements added yet.</span>`;
+      } else {
+        container.innerHTML = window._studentPendingAchievements.map((ach, idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:0.4rem 0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${ach.type}</span>
+              <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${ach.name}</span>
+            </div>
+            <button type="button" onclick="window.removeStudentUpdAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; font-weight:700;">&times;</button>
+          </div>
+        `).join("");
+      }
+      
+      const currentLabel = document.getElementById("stu-upd-achievements-current");
+      if (currentLabel) {
+        const currentAchStr = JSON.stringify(student.achievements || []);
+        const pendingAchStr = JSON.stringify(window._studentPendingAchievements);
+        if (hasPending && currentAchStr !== pendingAchStr) {
+          const oldList = (student.achievements || []).map(a => `[${a.type}] ${a.name}`).join(", ") || "None";
+          currentLabel.textContent = `Current Achievements: ${oldList}`;
+          currentLabel.style.display = "block";
+        } else {
+          currentLabel.style.display = "none";
+        }
+      }
+    };
+
+    window.addStudentUpdAchievement = () => {
+      const typeSelect = document.getElementById("stu-upd-new-ach-type");
+      const nameInput = document.getElementById("stu-upd-new-ach-name");
+      if (!typeSelect || !nameInput) return;
+      const type = typeSelect.value;
+      const name = nameInput.value.trim();
+      if (!type || !name) {
+        showToast("Please enter achievement details", "error");
+        return;
+      }
+      window._studentPendingAchievements.push({ type, name });
+      window.renderStudentUpdAchievementsList();
+      nameInput.value = "";
+    };
+
+    window.removeStudentUpdAchievement = (idx) => {
+      window._studentPendingAchievements.splice(idx, 1);
+      window.renderStudentUpdAchievementsList();
+    };
+
+    window.renderStudentUpdAchievementsList();
+
   } catch (err) {
     console.error("Failed to load profile update state:", err);
     showToast("Failed to load profile update state: " + err.message, "error");
@@ -1538,9 +1719,19 @@ window.submitStudentProfileUpdates = async () => {
       throw new Error("CGPA must be between 0 and 10");
     }
 
+    const sem_attendance = {};
+    for (let num = 1; num <= 8; num++) {
+      const inputEl = document.getElementById(`stu-upd-sem-${num}`);
+      const val = inputEl ? parseFloat(inputEl.value) : NaN;
+      sem_attendance[num] = !isNaN(val) ? val : null;
+    }
+
+    const achievements = window._studentPendingAchievements || [];
+
     const newVal = {
       gender, caste, email, phone, father_name, mother_name, father_phone,
-      class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa
+      class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa,
+      sem_attendance, achievements
     };
 
     const oldVal = {
@@ -1556,7 +1747,9 @@ window.submitStudentProfileUpdates = async () => {
       class_12_board: student.class_12_board || "",
       class_12_percent: student.class_12_percent || "",
       diploma_percent: student.diploma_percent || "",
-      current_cgpa: student.current_cgpa || ""
+      current_cgpa: student.current_cgpa || "",
+      sem_attendance: student.sem_attendance || {},
+      achievements: student.achievements || []
     };
 
     const { data: pending } = await supabaseClient
@@ -8667,6 +8860,34 @@ async function renderCoordStudentRequests(container) {
                                   }
                                 });
 
+                                // Compare Semester-wise Attendance
+                                const oldSem = oldVal.sem_attendance || {};
+                                const newSem = newVal.sem_attendance || {};
+                                for (let num = 1; num <= 8; num++) {
+                                  const o = oldSem[num] !== null && oldSem[num] !== undefined ? String(oldSem[num]).trim() : "";
+                                  const n = newSem[num] !== null && newSem[num] !== undefined ? String(newSem[num]).trim() : "";
+                                  if (o !== n) {
+                                    changedFields.push({
+                                      label: `Sem ${num} Att.`,
+                                      old: o !== "" ? o + "%" : "None",
+                                      new: n !== "" ? n + "%" : "None"
+                                    });
+                                  }
+                                }
+
+                                // Compare Achievements
+                                const oldAch = oldVal.achievements || [];
+                                const newAch = newVal.achievements || [];
+                                const oldAchStr = oldAch.map(a => `[${a.type}] ${a.name}`).join(", ") || "None";
+                                const newAchStr = newAch.map(a => `[${a.type}] ${a.name}`).join(", ") || "None";
+                                if (JSON.stringify(oldAch) !== JSON.stringify(newAch)) {
+                                  changedFields.push({
+                                    label: "Achievements",
+                                    old: oldAchStr,
+                                    new: newAchStr
+                                  });
+                                }
+
                                 if (changedFields.length === 0) {
                                   changeHtml = `<span style="color:var(--text-muted); font-style:italic;">No changes detected</span>`;
                                 } else {
@@ -8774,7 +8995,9 @@ window.approveStudentRequest = async (requestId) => {
         class_12_board: new_value.class_12_board || null,
         class_12_percent: parseFloat(new_value.class_12_percent) || null,
         diploma_percent: parseFloat(new_value.diploma_percent) || null,
-        current_cgpa: parseFloat(new_value.current_cgpa) || null
+        current_cgpa: parseFloat(new_value.current_cgpa) || null,
+        sem_attendance: new_value.sem_attendance || {},
+        achievements: new_value.achievements || []
       };
 
       const { error: updErr } = await supabaseClient
@@ -8864,6 +9087,10 @@ window.editAndApproveStudentRequest = async (requestId) => {
 
     if (field_name === "profile_update") {
       window._coordEditProfile = { ...(new_value || {}) };
+      window._coordEditProfileAchievements = Array.isArray(window._coordEditProfile.achievements) 
+        ? [...window._coordEditProfile.achievements] 
+        : [];
+
       const content = `<div id="coord-edit-modal-body" style="display:flex; flex-direction:column; gap:1rem;"></div>`;
 
       showModal(
@@ -8889,9 +9116,19 @@ window.editAndApproveStudentRequest = async (requestId) => {
             return;
           }
 
+          const sem_attendance = {};
+          for (let num = 1; num <= 8; num++) {
+            const inputEl = document.getElementById(`coord-ep-sem-${num}`);
+            const val = inputEl ? parseFloat(inputEl.value) : NaN;
+            sem_attendance[num] = !isNaN(val) ? val : null;
+          }
+
+          const achievements = window._coordEditProfileAchievements || [];
+
           const edited = {
             gender, caste, email, phone, father_name, mother_name, father_phone,
-            class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa
+            class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa,
+            sem_attendance, achievements
           };
 
           try {
@@ -8909,6 +9146,44 @@ window.editAndApproveStudentRequest = async (requestId) => {
         },
         { confirmText: "Approve with Changes", cancelText: "Cancel", isWide: true }
       );
+
+      window.addCoordEpAchievement = () => {
+        const typeSelect = document.getElementById("coord-ep-ach-type");
+        const nameInput = document.getElementById("coord-ep-ach-name");
+        if (!typeSelect || !nameInput) return;
+        const type = typeSelect.value;
+        const name = nameInput.value.trim();
+        if (!type || !name) {
+          showToast("Please enter achievement details", "error");
+          return;
+        }
+        window._coordEditProfileAchievements.push({ type, name });
+        window.renderCoordEpAchievementsList();
+        nameInput.value = "";
+      };
+
+      window.removeCoordEpAchievement = (idx) => {
+        window._coordEditProfileAchievements.splice(idx, 1);
+        window.renderCoordEpAchievementsList();
+      };
+
+      window.renderCoordEpAchievementsList = () => {
+        const container = document.getElementById("coord-ep-ach-list");
+        if (!container) return;
+        if (window._coordEditProfileAchievements.length === 0) {
+          container.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:0.8rem;">No achievements.</span>`;
+        } else {
+          container.innerHTML = window._coordEditProfileAchievements.map((ach, idx) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.4rem 0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${ach.type}</span>
+                <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${ach.name}</span>
+              </div>
+              <button type="button" onclick="window.removeCoordEpAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; font-weight:700;">&times;</button>
+            </div>
+          `).join("");
+        }
+      };
 
       const body = document.getElementById("coord-edit-modal-body");
       if (body) {
@@ -8987,8 +9262,33 @@ window.editAndApproveStudentRequest = async (requestId) => {
               <label>Current CGPA</label>
               <input type="number" step="0.01" id="coord-ep-cgpa" value="${window._coordEditProfile.current_cgpa || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
             </div>
+
+            <div style="grid-column: 1 / -1; margin-top:0.5rem; border-top:1px solid var(--border); padding-top:1rem;"><h4 style="margin:0; color:var(--primary);">Semester-wise Attendance (%)</h4></div>
+            ${[1, 2, 3, 4, 5, 6, 7, 8].map(num => `
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Semester ${num}</label>
+                <input type="number" step="0.01" min="0" max="100" id="coord-ep-sem-${num}" value="${window._coordEditProfile.sem_attendance?.[num] !== undefined ? window._coordEditProfile.sem_attendance[num] : ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+              </div>
+            `).join("")}
+
+            <div style="grid-column: 1 / -1; margin-top:0.5rem; border-top:1px solid var(--border); padding-top:1rem;"><h4 style="margin:0; color:var(--primary);">Achievements</h4></div>
+            <div style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:0.5rem;">
+              <div id="coord-ep-ach-list" style="max-height:150px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.4rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;"></div>
+              <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.5rem; align-items:end; margin-top:0.5rem;">
+                <select id="coord-ep-ach-type" style="padding:0.4rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
+                  <option value="Internship">Internship</option>
+                  <option value="Hackathon">Hackathon</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Certifications">Certifications</option>
+                  <option value="Others">Others</option>
+                </select>
+                <input type="text" id="coord-ep-ach-name" placeholder="Details" style="padding:0.4rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
+                <button type="button" onclick="window.addCoordEpAchievement()" style="background:#10b981; color:white; border:none; padding:0.4rem 0.8rem; border-radius:0.4rem; font-weight:700; font-size:0.8rem; cursor:pointer;">+ Add</button>
+              </div>
+            </div>
           </div>
         `;
+        window.renderCoordEpAchievementsList();
       }
     }
   } catch (err) {
@@ -9219,10 +9519,13 @@ window.downloadCoordStudentsExcel = () => {
 window.editCoordStudent = (studentId) => {
   const s = window._coordStudentsList?.find((st) => st.id === studentId);
   if (!s) return;
+  
+  window._csEditAchievements = Array.isArray(s.achievements) ? [...s.achievements] : [];
+
   showModal(
     `Edit Student — ${s.name}`,
     `
-        <div style="display:grid;gap:1rem;margin-top:0.5rem;">
+        <div style="display:grid;gap:1rem;margin-top:0.5rem;max-height:450px;overflow-y:auto;padding-right:0.25rem;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                 <div class="form-group"><label>Full Name</label><input id="cs-name" value="${s.name || ""}" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
                 <div class="form-group"><label>Roll No</label><input id="cs-roll" value="${s.roll_no || ""}" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
@@ -9271,6 +9574,7 @@ window.editCoordStudent = (studentId) => {
                 <div class="form-group"><label>Father's Name</label><input type="text" id="cs-father-name" value="${s.father_name || ""}" placeholder="Father's full name" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
             </div>
             <div class="form-group"><label>Father's Phone</label><input type="tel" id="cs-father-phone" value="${s.father_phone || ""}" placeholder="+91 9876543210" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
+            
             <div style="border-top:1px solid var(--border);padding-top:1rem;grid-column:1 / -1;margin-top:0.5rem;">
                 <h4 style="margin:0 0 1rem 0;color:var(--primary);">Academic Records & Profile Details</h4>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
@@ -9286,14 +9590,53 @@ window.editCoordStudent = (studentId) => {
                     <div class="form-group"><label>Current CGPA</label><input type="number" step="0.01" id="cs-cgpa" value="${s.current_cgpa || ""}" placeholder="e.g. 8.45" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
                     <div class="form-group"><label>Active Backlogs</label><input type="number" id="cs-active-backlogs" value="${s.active_backlogs || 0}" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
                     <div class="form-group"><label>History Backlogs</label><input type="number" id="cs-history-backlogs" value="${s.history_backlogs || 0}" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
                     <div class="form-group"><label>Mother's Name</label><input type="text" id="cs-mother-name" value="${s.mother_name || ""}" placeholder="Mother's full name" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);"></div>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+                    <h4 style="margin:0 0 1rem 0;color:var(--primary);">Semester-wise Attendance (%)</h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        ${[1, 2, 3, 4, 5, 6, 7, 8].map(num => `
+                            <div class="form-group">
+                                <label>Semester ${num}</label>
+                                <input type="number" step="0.01" min="0" max="100" id="cs-sem-${num}" value="${s.sem_attendance?.[num] !== undefined ? s.sem_attendance[num] : ""}" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);">
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+                    <h4 style="margin:0 0 1rem 0;color:var(--primary);">Achievements</h4>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
+                        <div id="cs-ach-list" style="max-height:150px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;"></div>
+                        <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:0.5rem; align-items:end; margin-top:0.5rem;">
+                            <select id="cs-ach-type" style="padding:0.45rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.85rem;">
+                                <option value="Internship">Internship</option>
+                                <option value="Hackathon">Hackathon</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Certifications">Certifications</option>
+                                <option value="Others">Others</option>
+                            </select>
+                            <input type="text" id="cs-ach-name" placeholder="Details" style="padding:0.45rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.85rem;">
+                            <button type="button" onclick="window.addCsAchievement()" style="background:#10b981; color:white; border:none; padding:0.45rem 1rem; border-radius:0.4rem; font-weight:700; font-size:0.85rem; cursor:pointer;">+ Add</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     `,
     async () => {
+      const sem_attendance = {};
+      for (let num = 1; num <= 8; num++) {
+        const inputEl = document.getElementById(`cs-sem-${num}`);
+        const val = inputEl ? parseFloat(inputEl.value) : NaN;
+        sem_attendance[num] = !isNaN(val) ? val : null;
+      }
+      
+      const achievements = window._csEditAchievements || [];
+
       const updates = {
         name: document.getElementById("cs-name").value.trim(),
         roll_no: document.getElementById("cs-roll").value.trim(),
@@ -9329,6 +9672,8 @@ window.editCoordStudent = (studentId) => {
           0,
         mother_name:
           document.getElementById("cs-mother-name").value.trim() || null,
+        sem_attendance,
+        achievements
       };
       const { error } = await supabaseClient
         .from("students")
@@ -9344,6 +9689,46 @@ window.editCoordStudent = (studentId) => {
     },
     { confirmText: "Save Changes", isWide: true },
   );
+
+  window.addCsAchievement = () => {
+    const typeSelect = document.getElementById("cs-ach-type");
+    const nameInput = document.getElementById("cs-ach-name");
+    if (!typeSelect || !nameInput) return;
+    const type = typeSelect.value;
+    const name = nameInput.value.trim();
+    if (!type || !name) {
+      showToast("Please enter achievement details", "error");
+      return;
+    }
+    window._csEditAchievements.push({ type, name });
+    window.renderCsAchievementsList();
+    nameInput.value = "";
+  };
+
+  window.removeCsAchievement = (idx) => {
+    window._csEditAchievements.splice(idx, 1);
+    window.renderCsAchievementsList();
+  };
+
+  window.renderCsAchievementsList = () => {
+    const container = document.getElementById("cs-ach-list");
+    if (!container) return;
+    if (window._csEditAchievements.length === 0) {
+      container.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:0.8rem;">No achievements.</span>`;
+    } else {
+      container.innerHTML = window._csEditAchievements.map((ach, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.4rem 0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${ach.type}</span>
+            <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${ach.name}</span>
+          </div>
+          <button type="button" onclick="window.removeCsAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; font-weight:700;">&times;</button>
+        </div>
+      `).join("");
+    }
+  };
+
+  window.renderCsAchievementsList();
 };
 
 async function renderCoordEditAttendance(container) {
