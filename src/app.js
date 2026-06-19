@@ -8054,8 +8054,11 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                                           (ls, idx) => `
                                     <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
                                         <td style="padding: 0.75rem 0.25rem; vertical-align: middle;">
-                                            <div style="font-weight: 700; font-size: 0.82rem; color: var(--text-main);">${ls.teachers || "Not Assigned"}</div>
-                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.05rem;">${ls.subjectCode} · ${ls.slot}</div>
+                                            <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary); margin-bottom: 0.15rem;">Lecture ${idx + 1} (${ls.typeLabel})</div>
+                                            <div style="font-weight: 600; font-size: 0.82rem; color: var(--text-main);">${ls.teachers || "Not Assigned"}</div>
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.05rem;">
+                                                <span style="font-weight: 600; color: var(--text-muted);">${ls.subjectCode} - ${ls.subjectName}</span> · ${ls.slot}
+                                            </div>
                                         </td>
                                         <td style="padding: 0.75rem 0.25rem; vertical-align: middle;">
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
