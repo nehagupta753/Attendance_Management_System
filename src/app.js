@@ -3118,15 +3118,17 @@ async function renderMarkAttendance(container) {
   const selectedClassId = selectedClass ? selectedClass.id : null;
 
   let markedLectureNos = [];
+  let markedLecturesDetails = [];
   if (selectedClassId) {
     try {
       const { data: markedRecs } = await supabaseClient
         .from("attendance_records")
-        .select("lecture_no")
+        .select("lecture_no, subject_id, teacher_id, teacher_ids, subjects(code, name), teachers(name)")
         .eq("date", todayDate)
         .eq("class_id", selectedClassId);
       if (markedRecs) {
         markedLectureNos = [...new Set(markedRecs.map(r => parseInt(r.lecture_no, 10)).filter(Boolean))];
+        markedLecturesDetails = markedRecs;
       }
     } catch (e) {
       console.error("Error fetching marked lecture numbers:", e);
@@ -3249,8 +3251,24 @@ async function renderMarkAttendance(container) {
             <div style="display:flex;gap:1rem;flex-wrap:wrap;">
                 ${filteredClasses
                   .map((t, idx) => {
-                    const entryTeachers =
-                      t.teacher_ids && t.teacher_ids.length > 0
+                    const lectureNo = idx + 1;
+                    const markedRecord = markedLecturesDetails.find(r => parseInt(r.lecture_no, 10) === lectureNo);
+                    const submitted = !!markedRecord;
+
+                    let displaySubject = "";
+                    let displayTeachers = "";
+                    if (submitted) {
+                      displaySubject = `${markedRecord.subjects?.code} — ${markedRecord.subjects?.name}`;
+                      const actualTids = (markedRecord.teacher_ids || [markedRecord.teacher_id]).filter(Boolean);
+                      displayTeachers = actualTids.length > 0
+                        ? actualTids
+                            .map((tid) => currentState.teachers.find((tc) => tc.id === tid)?.name || "")
+                            .filter(Boolean)
+                            .join(", ")
+                        : markedRecord.teachers?.name || "System";
+                    } else {
+                      displaySubject = `${t.subjects?.code} — ${t.subjects?.name}`;
+                      displayTeachers = t.teacher_ids && t.teacher_ids.length > 0
                         ? t.teacher_ids
                             .map((tid) => {
                               const tc = currentState.teachers.find(
@@ -3261,23 +3279,24 @@ async function renderMarkAttendance(container) {
                             .filter(Boolean)
                             .join(", ")
                         : t.teachers?.name || teacher?.name || "";
+                    }
+
                     const typeLabel = t.is_lab
                       ? `Lab (${t.batch || "All"})`
                       : "Lecture";
-                    const submitted = t.isSubmitted;
                     return `
                         <div class="card lecture-card ${submitted ? "submitted" : ""}" style="flex: 1; min-width: 250px; padding: 1rem 1.25rem; margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
-                                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.25rem;">${t.slot}</div>
-                                <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.15rem;">${t.subjects?.code} — ${t.subjects?.name}</div>
+                                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.25rem;">${t.slot} · Lecture ${lectureNo}</div>
+                                <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.15rem;">${displaySubject}</div>
                                 <div style="font-size:0.75rem;color:var(--primary);">${t.classes?.branch} ${t.classes?.year} · Sec ${t.classes?.section}</div>
                                 <div style="font-size:0.7rem;color:var(--text-muted);margin:0.2rem 0;">${typeLabel}</div>
-                                <div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:0.75rem;">${entryTeachers}</div>
+                                <div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:0.75rem;">${submitted ? "Submitted by: " : ""}${displayTeachers}</div>
                             </div>
                             ${
                               submitted
                                 ? `<div style="display:flex;gap:0.5rem;align-items:center;margin-top:auto;">
-                                    <span style="background:rgba(16,185,129,0.12);color:var(--accent);padding:0.3rem 0.75rem;border-radius:1rem;font-size:0.75rem;font-weight:700;border:1px solid rgba(16,185,129,0.35);">✓ Submitted</span>
+                                    <span style="background:rgba(16,185,129,0.12);color:var(--accent);padding:0.3rem 0.75rem;border-radius:1rem;font-size:0.75rem;font-weight:700;border:1px solid rgba(16,185,129,0.35);">✓ Lecture ${lectureNo} Submitted</span>
                                     <button onclick="window.openLectureMark('${t.id}','${t.teacher_ids && t.teacher_ids.length > 0 ? t.teacher_ids.join(",") : t.teacher_id || ""}')" class="btn-secondary" style="padding:0.3rem 0.75rem;font-size:0.75rem;border-radius:0.5rem;">Edit</button>
                                    </div>`
                                 : `<button onclick="window.openLectureMark('${t.id}','${t.teacher_ids && t.teacher_ids.length > 0 ? t.teacher_ids.join(",") : t.teacher_id || ""}')" class="btn-primary" style="width:100%;padding:0.5rem;font-size:0.8rem;margin-top:auto;">Mark Attendance</button>`
@@ -7295,13 +7314,15 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
       return (a.start_time || "").localeCompare(b.start_time || "");
     });
   const lectureStats = [];
+  let lecIdx = 0;
   for (const lec of allTodaySlots) {
+    lecIdx++;
     const { data: records } = await supabaseClient
       .from("attendance_records")
-      .select("id, status, teacher_id, teacher_ids, students(name, roll_no)")
+      .select("id, status, teacher_id, teacher_ids, subject_id, subjects(code, name), students(name, roll_no)")
       .eq("date", todayDate)
       .eq("class_id", lec.class_id)
-      .eq("subject_id", lec.subject_id);
+      .eq("lecture_no", lecIdx);
 
     const allRecords = records || [];
     const total = allRecords.length;
@@ -7317,13 +7338,16 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
           .join(", ")
       : "";
 
+    const actualSubjectCode = allRecords && allRecords[0]?.subjects ? allRecords[0].subjects.code : lec.subjects?.code || "";
+    const actualSubjectName = allRecords && allRecords[0]?.subjects ? allRecords[0].subjects.name : lec.subjects?.name || "—";
+
     lectureStats.push({
       id: lec.id,
       class_id: lec.class_id,
-      subject_id: lec.subject_id,
-      label: `${lec.subjects?.code || ""} (${lec.slot})`,
-      subjectName: lec.subjects?.name || "—",
-      subjectCode: lec.subjects?.code || "",
+      subject_id: allRecords && allRecords[0] ? allRecords[0].subject_id : lec.subject_id,
+      label: `${actualSubjectCode} (${lec.slot})`,
+      subjectName: actualSubjectName,
+      subjectCode: actualSubjectCode,
       slot: lec.slot,
       classInfo: `${lec.classes?.branch || ""} ${lec.classes?.year || ""} Sec ${lec.classes?.section || ""}`,
       typeLabel: lec.is_lab ? `Lab (${lec.batch || "All"})` : "Lecture",
