@@ -1479,21 +1479,32 @@ window.initStudentUpdateProfileTab = async () => {
       lucide.createIcons();
     }
 
-    document.getElementById("stu-upd-gender").value = valuesToUse.gender;
-    document.getElementById("stu-upd-caste").value = valuesToUse.caste;
-    document.getElementById("stu-upd-email").value = valuesToUse.email;
-    document.getElementById("stu-upd-phone").value = valuesToUse.phone;
-    document.getElementById("stu-upd-father-name").value = valuesToUse.father_name;
-    document.getElementById("stu-upd-mother-name").value = valuesToUse.mother_name;
-    document.getElementById("stu-upd-father-phone").value = valuesToUse.father_phone;
-    document.getElementById("stu-upd-10-board").value = valuesToUse.class_10_board;
-    document.getElementById("stu-upd-10-pct").value = valuesToUse.class_10_percent;
-    document.getElementById("stu-upd-12-board").value = valuesToUse.class_12_board;
-    document.getElementById("stu-upd-12-pct").value = valuesToUse.class_12_percent;
-    document.getElementById("stu-upd-diploma-pct").value = valuesToUse.diploma_percent;
-    document.getElementById("stu-upd-cgpa").value = valuesToUse.current_cgpa;
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val !== null && val !== undefined ? val : "";
+    };
+
+    let genderVal = valuesToUse.gender;
+    if (genderVal) {
+      genderVal = genderVal.charAt(0).toUpperCase() + genderVal.slice(1).toLowerCase();
+    }
+
+    setVal("stu-upd-gender", genderVal);
+    setVal("stu-upd-caste", valuesToUse.caste);
+    setVal("stu-upd-email", valuesToUse.email);
+    setVal("stu-upd-phone", valuesToUse.phone);
+    setVal("stu-upd-father-name", valuesToUse.father_name);
+    setVal("stu-upd-mother-name", valuesToUse.mother_name);
+    setVal("stu-upd-father-phone", valuesToUse.father_phone);
+    setVal("stu-upd-10-board", valuesToUse.class_10_board);
+    setVal("stu-upd-10-pct", valuesToUse.class_10_percent);
+    setVal("stu-upd-12-board", valuesToUse.class_12_board);
+    setVal("stu-upd-12-pct", valuesToUse.class_12_percent);
+    setVal("stu-upd-diploma-pct", valuesToUse.diploma_percent);
+    setVal("stu-upd-cgpa", valuesToUse.current_cgpa);
 
   } catch (err) {
+    console.error("Failed to load profile update state:", err);
     showToast("Failed to load profile update state: " + err.message, "error");
   }
 };
