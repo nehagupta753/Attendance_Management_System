@@ -1350,7 +1350,7 @@ window.renderStudentLayout = async () => {
                                 </div>
                             </div>
 
-                            <div style="margin-top:2rem; display:flex; justify-content:center;">
+                            <div id="stu-upd-action-container" style="margin-top:2rem; display:flex; justify-content:center; gap:1rem;">
                                 <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
                                     <i data-lucide="save" style="width:18px; height:18px;"></i> Submit Update Request
                                 </button>
@@ -1643,7 +1643,7 @@ window.initStudentUpdateProfileTab = async () => {
               <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${ach.type}</span>
               <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${ach.name}</span>
             </div>
-            <button type="button" onclick="window.removeStudentUpdAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; font-weight:700;">&times;</button>
+            ${window._studentAchievementsDisabled ? "" : `<button type="button" onclick="window.removeStudentUpdAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; font-weight:700;">&times;</button>`}
           </div>
         `).join("");
       }
@@ -1680,6 +1680,67 @@ window.initStudentUpdateProfileTab = async () => {
     window.removeStudentUpdAchievement = (idx) => {
       window._studentPendingAchievements.splice(idx, 1);
       window.renderStudentUpdAchievementsList();
+    };
+
+    window.setStudentUpdateFieldsDisabled = (disabled) => {
+      const ids = [
+        "stu-upd-gender", "stu-upd-caste", "stu-upd-email", "stu-upd-phone",
+        "stu-upd-father-name", "stu-upd-mother-name", "stu-upd-father-phone",
+        "stu-upd-10-board", "stu-upd-10-pct", "stu-upd-12-board", "stu-upd-12-pct",
+        "stu-upd-diploma-pct", "stu-upd-cgpa",
+        "stu-upd-new-ach-type", "stu-upd-new-ach-name"
+      ];
+      for (let num = 1; num <= 8; num++) {
+        ids.push(`stu-upd-sem-${num}`);
+      }
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      });
+
+      const addBtn = document.querySelector("button[onclick='window.addStudentUpdAchievement()']");
+      if (addBtn) addBtn.disabled = disabled;
+
+      window._studentAchievementsDisabled = disabled;
+      window.renderStudentUpdAchievementsList();
+    };
+
+    const actionContainer = document.getElementById("stu-upd-action-container");
+    if (actionContainer) {
+      if (hasPending) {
+        window.setStudentUpdateFieldsDisabled(true);
+        actionContainer.innerHTML = `
+          <button class="btn-primary" disabled style="background:#10b981; border-color:#10b981; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:white; opacity:1; cursor:default;">
+            <i data-lucide="check-circle" style="width:18px; height:18px;"></i> Submitted
+          </button>
+          <button class="btn-primary" id="btn-edit-pending-request" onclick="window.enableStudentProfileEditing()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:white; cursor:pointer;">
+            <i data-lucide="edit-3" style="width:18px; height:18px;"></i> Edit
+          </button>
+        `;
+      } else {
+        window.setStudentUpdateFieldsDisabled(false);
+        actionContainer.innerHTML = `
+          <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
+            <i data-lucide="save" style="width:18px; height:18px;"></i> Submit Update Request
+          </button>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    window.enableStudentProfileEditing = () => {
+      window.setStudentUpdateFieldsDisabled(false);
+      if (actionContainer) {
+        actionContainer.innerHTML = `
+          <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:white; cursor:pointer;">
+            <i data-lucide="save" style="width:18px; height:18px;"></i> Save Changes
+          </button>
+          <button class="btn-primary" onclick="window.initStudentUpdateProfileTab()" style="background:transparent; border:1px solid var(--border); padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:var(--text-main); cursor:pointer;">
+            Cancel
+          </button>
+        `;
+        lucide.createIcons();
+      }
     };
 
     window.renderStudentUpdAchievementsList();
