@@ -1204,7 +1204,8 @@ window.renderStudentLayout = async () => {
                     </div>
                     <div id="student-content-msttimetable" style="display: none;">
                         <div id="student-mst-timetable-area"></div>
-                             <div id="student-content-updateprofile" style="display: none;">
+                    </div>
+                    <div id="student-content-updateprofile" style="display: none;">
                         <div id="student-update-pending-alert"></div>
                         <div class="card" style="padding:1.5rem; border-radius:1rem; border:1px solid var(--border); background:#ffffff;">
                             <h3 style="margin-top:0; color:#003366; font-size:1.2rem; font-weight:700; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1.5rem;">Personal & Academic Details Update</h3>
@@ -1297,7 +1298,6 @@ window.renderStudentLayout = async () => {
                                 </button>
                             </div>
                         </div>
-                    </div>                </div>
                     </div>
                 </div>
             </div>
