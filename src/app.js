@@ -2710,10 +2710,14 @@ window.toggleMarkAttendanceType = (val) => {
   const subContainer = document.getElementById("sel-subject-container");
   const batchContainer = document.getElementById("sel-batch-container");
   const labConfigs = document.getElementById("sel-lab-configs");
+  const andSpan = document.getElementById("sel-lecture-no-and");
+  const endLecSelect = document.getElementById("sel-lecture-no-end");
 
   if (subContainer) subContainer.style.display = isLab ? "none" : "block";
   if (batchContainer) batchContainer.style.display = "block";
   if (labConfigs) labConfigs.style.display = isLab ? "block" : "none";
+  if (andSpan) andSpan.style.display = isLab ? "inline" : "none";
+  if (endLecSelect) endLecSelect.style.display = isLab ? "block" : "none";
   window.checkTeacherSelectionValid();
 };
 window.checkTeacherSelectionValid = () => {
@@ -2870,6 +2874,41 @@ window.onManualFormChange = () => {
     populateSelect("sel-subject");
     populateSelect("sel-subject-b1");
     populateSelect("sel-subject-b2");
+  }
+  
+  if (window.updateLoadStudentsButton) window.updateLoadStudentsButton();
+};
+
+window.updateLoadStudentsButton = () => {
+  const container = document.getElementById("load-students-btn-container");
+  if (!container) return;
+
+  const lectureNoVal = parseInt(document.getElementById("sel-lecture-no")?.value || "1", 10);
+  const lectureNoValEndEl = document.getElementById("sel-lecture-no-end");
+  const isLab = document.getElementById("sel-class-type")?.value === "Lab";
+  const lectureNoValEnd = (isLab && lectureNoValEndEl && lectureNoValEndEl.style.display !== "none") ? parseInt(lectureNoValEndEl.value, 10) : NaN;
+
+  const isLec1Marked = window._currentMarkedLectureNos && window._currentMarkedLectureNos.includes(lectureNoVal);
+  const isLec2Marked = !isNaN(lectureNoValEnd) && window._currentMarkedLectureNos && window._currentMarkedLectureNos.includes(lectureNoValEnd);
+
+  const isMarked = isLab ? (isLec1Marked || isLec2Marked) : isLec1Marked;
+
+  if (isMarked) {
+    container.innerHTML = `
+      <div style="display:flex; gap:1rem; width:100%;">
+        <span style="background:rgba(16,185,129,0.12); color:var(--accent); padding:0.75rem 1.5rem; border-radius:0.5rem; font-size:0.9rem; font-weight:700; border:1px solid rgba(16,185,129,0.35); flex:1; text-align:center; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+          <i data-lucide="check-circle" style="width:16px; height:16px;"></i> Submitted
+        </span>
+        <button type="button" class="btn-primary" onclick="window.loadStudentList()" style="flex:1; padding:0.75rem 1.5rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+          <i data-lucide="edit" style="width:16px; height:16px;"></i> Edit
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+  } else {
+    container.innerHTML = `
+      <button id="load-students-btn" class="btn-primary" style="width:100%;" onclick="window.loadStudentList()">Load Students</button>
+    `;
   }
 };
 
@@ -3108,7 +3147,9 @@ async function renderMarkAttendance(container) {
     year: "",
     branch: "",
     section: "",
+    type: "Lecture",
     lectureNo: "1",
+    lectureNoEnd: "",
     subjectId: ""
   };
 
@@ -3134,6 +3175,9 @@ async function renderMarkAttendance(container) {
       console.error("Error fetching marked lecture numbers:", e);
     }
   }
+  
+  window._currentMarkedLectureNos = markedLectureNos;
+
   let filteredClasses = todayClasses;
   if (selManual.year) {
     filteredClasses = filteredClasses.filter(
@@ -3155,10 +3199,12 @@ async function renderMarkAttendance(container) {
     const yr = document.getElementById("header-year")?.value || "";
     const br = document.getElementById("header-branch")?.value || "";
     const sec = document.getElementById("header-section")?.value || "";
+    const type = document.getElementById("header-type")?.value || "Lecture";
     const lecNo = document.getElementById("header-lecture-no")?.value || "1";
+    const lecNoEnd = document.getElementById("header-lecture-no-end")?.value || "";
     const subId = document.getElementById("header-subject")?.value || "";
 
-    currentState.selectedHeaderClass = { year: yr, branch: br, section: sec, lectureNo: lecNo, subjectId: subId };
+    currentState.selectedHeaderClass = { year: yr, branch: br, section: sec, type, lectureNo: lecNo, lectureNoEnd: lecNoEnd, subjectId: subId };
     renderMarkAttendance(container);
   };
 
@@ -3177,11 +3223,21 @@ async function renderMarkAttendance(container) {
           document.getElementById("sel-branch").value = selManual.branch;
         if (selManual.section)
           document.getElementById("sel-section").value = selManual.section;
+        if (selManual.type) {
+          document.getElementById("sel-class-type").value = selManual.type;
+          window.toggleMarkAttendanceType(selManual.type);
+        }
         if (selManual.lectureNo)
           document.getElementById("sel-lecture-no").value = selManual.lectureNo;
+        if (selManual.type === "Lab" && selManual.lectureNoEnd) {
+          const endSel = document.getElementById("sel-lecture-no-end");
+          if (endSel) endSel.value = selManual.lectureNoEnd;
+        }
         if (selManual.subjectId)
           document.getElementById("sel-subject").value = selManual.subjectId;
+        
         window.onManualFormChange();
+        if (window.updateLoadStudentsButton) window.updateLoadStudentsButton();
       }
     }
   }, 50);
@@ -3226,6 +3282,13 @@ async function renderMarkAttendance(container) {
                         </select>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Type:</span>
+                        <select id="header-type" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
+                            <option value="Lecture" ${selManual.type === "Lecture" ? "selected" : ""}>Lecture</option>
+                            <option value="Lab" ${selManual.type === "Lab" ? "selected" : ""}>Lab</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
                         <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Lecture:</span>
                         <select id="header-lecture-no" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
                             <option value="1" ${selManual.lectureNo === "1" ? "selected" : ""}>Lecture 1${markedLectureNos.includes(1) ? " (Marked)" : ""}</option>
@@ -3235,6 +3298,17 @@ async function renderMarkAttendance(container) {
                             <option value="5" ${selManual.lectureNo === "5" ? "selected" : ""}>Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
                             <option value="6" ${selManual.lectureNo === "6" ? "selected" : ""}>Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
                         </select>
+                        ${selManual.type === "Lab" ? `
+                            <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">&</span>
+                            <select id="header-lecture-no-end" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
+                                <option value="" ${!selManual.lectureNoEnd ? "selected" : ""}>-- Select --</option>
+                                <option value="2" ${selManual.lectureNoEnd === "2" ? "selected" : ""}>Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
+                                <option value="3" ${selManual.lectureNoEnd === "3" ? "selected" : ""}>Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
+                                <option value="4" ${selManual.lectureNoEnd === "4" ? "selected" : ""}>Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
+                                <option value="5" ${selManual.lectureNoEnd === "5" ? "selected" : ""}>Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
+                                <option value="6" ${selManual.lectureNoEnd === "6" ? "selected" : ""}>Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
+                            </select>
+                        ` : ""}
                     </div>
                     <div style="display:flex; align-items:center; gap:0.35rem;">
                         <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Subject:</span>
@@ -3356,14 +3430,25 @@ async function renderMarkAttendance(container) {
                 </div>
                 <div class="form-group" id="sel-lecture-no-container">
                     <label>Lecture No</label>
-                    <select id="sel-lecture-no" style="width:100%;">
-                        <option value="1" selected>Lecture 1${markedLectureNos.includes(1) ? " (Marked)" : ""}</option>
-                        <option value="2">Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
-                        <option value="3">Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
-                        <option value="4">Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
-                        <option value="5">Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
-                        <option value="6">Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
-                    </select>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <select id="sel-lecture-no" style="width:100%;" onchange="window.updateLoadStudentsButton()">
+                            <option value="1" selected>Lecture 1${markedLectureNos.includes(1) ? " (Marked)" : ""}</option>
+                            <option value="2">Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
+                            <option value="3">Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
+                            <option value="4">Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
+                            <option value="5">Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
+                            <option value="6">Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
+                        </select>
+                        <span id="sel-lecture-no-and" style="display:none; font-weight:700;">&</span>
+                        <select id="sel-lecture-no-end" style="width:100%; display:none;" onchange="window.updateLoadStudentsButton()">
+                            <option value="" disabled selected>-- Select --</option>
+                            <option value="2">Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
+                            <option value="3">Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
+                            <option value="4">Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
+                            <option value="5">Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
+                            <option value="6">Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group" id="sel-batch-container">
                     <label style="margin-bottom: 0.5rem; display:block;">Filter by Batch</label>
@@ -3416,7 +3501,7 @@ async function renderMarkAttendance(container) {
                     </div>
                     <p id="teacher-select-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">Select at least 1 teacher for Lecture, or 2 teachers for Lab.</p>
                 </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
+                <div class="form-group" style="grid-column: 1 / -1;" id="load-students-btn-container">
                     <button id="load-students-btn" class="btn-primary" style="width:100%;" onclick="window.loadStudentList()">Load Students</button>
                 </div>
             </div>
@@ -3856,6 +3941,9 @@ window.submitAttendance = async () => {
       if (!recordSubjectId) return;
 
       const lectureNoVal = parseInt(document.getElementById("sel-lecture-no")?.value || "1", 10);
+      const lectureNoValEndEl = document.getElementById("sel-lecture-no-end");
+      const lectureNoValEnd = (isLab && lectureNoValEndEl && lectureNoValEndEl.style.display !== "none") ? parseInt(lectureNoValEndEl.value, 10) : NaN;
+
       const rec = {
         student_id: studentId,
         teacher_id: teacherIds[0],
@@ -3871,6 +3959,12 @@ window.submitAttendance = async () => {
         rec.id = recordId;
       }
       records.push(rec);
+
+      if (!isNaN(lectureNoValEnd)) {
+        const rec2 = { ...rec, lecture_no: lectureNoValEnd };
+        delete rec2.id;
+        records.push(rec2);
+      }
       if (status === "Present") presentCount++;
     }
   });
