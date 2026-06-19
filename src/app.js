@@ -3108,6 +3108,8 @@ async function renderMarkAttendance(container) {
     year: "",
     branch: "",
     section: "",
+    lectureNo: "1",
+    subjectId: ""
   };
   let filteredClasses = todayClasses;
   if (selManual.year) {
@@ -3130,8 +3132,10 @@ async function renderMarkAttendance(container) {
     const yr = document.getElementById("header-year")?.value || "";
     const br = document.getElementById("header-branch")?.value || "";
     const sec = document.getElementById("header-section")?.value || "";
+    const lecNo = document.getElementById("header-lecture-no")?.value || "1";
+    const subId = document.getElementById("header-subject")?.value || "";
 
-    currentState.selectedHeaderClass = { year: yr, branch: br, section: sec };
+    currentState.selectedHeaderClass = { year: yr, branch: br, section: sec, lectureNo: lecNo, subjectId: subId };
     renderMarkAttendance(container);
   };
 
@@ -3150,6 +3154,10 @@ async function renderMarkAttendance(container) {
           document.getElementById("sel-branch").value = selManual.branch;
         if (selManual.section)
           document.getElementById("sel-section").value = selManual.section;
+        if (selManual.lectureNo)
+          document.getElementById("sel-lecture-no").value = selManual.lectureNo;
+        if (selManual.subjectId)
+          document.getElementById("sel-subject").value = selManual.subjectId;
         window.onManualFormChange();
       }
     }
@@ -3192,6 +3200,24 @@ async function renderMarkAttendance(container) {
                             <option value="3" ${selManual.section === "3" ? "selected" : ""}>3</option>
                             <option value="4" ${selManual.section === "4" ? "selected" : ""}>4</option>
                             <option value="5" ${selManual.section === "5" ? "selected" : ""}>5</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Lecture:</span>
+                        <select id="header-lecture-no" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
+                            <option value="1" ${selManual.lectureNo === "1" ? "selected" : ""}>Lecture 1</option>
+                            <option value="2" ${selManual.lectureNo === "2" ? "selected" : ""}>Lecture 2</option>
+                            <option value="3" ${selManual.lectureNo === "3" ? "selected" : ""}>Lecture 3</option>
+                            <option value="4" ${selManual.lectureNo === "4" ? "selected" : ""}>Lecture 4</option>
+                            <option value="5" ${selManual.lectureNo === "5" ? "selected" : ""}>Lecture 5</option>
+                            <option value="6" ${selManual.lectureNo === "6" ? "selected" : ""}>Lecture 6</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Subject:</span>
+                        <select id="header-subject" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow); max-width:200px;">
+                            <option value="" ${!selManual.subjectId ? "selected" : ""}>-- Subject --</option>
+                            ${visibleSubjects.map((s) => `<option value="${s.id}" ${selManual.subjectId === s.id ? "selected" : ""}>${s.code} - ${s.name}</option>`).join("")}
                         </select>
                     </div>
                 </div>
