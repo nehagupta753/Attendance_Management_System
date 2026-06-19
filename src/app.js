@@ -1004,6 +1004,9 @@ window.renderStudentLayout = async () => {
                         <button id="student-tab-msttimetable" class="student-tab-btn" onclick="switchStudentTab('msttimetable')">
                             <i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i> MST Timetable
                         </button>
+                        <button id="student-tab-updateprofile" class="student-tab-btn" onclick="switchStudentTab('updateprofile')">
+                            <i data-lucide="user-cog" style="width: 18px; height: 18px;"></i> Update Profile
+                        </button>
                     </div>
                     <div id="student-content-subject">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
@@ -1202,9 +1205,96 @@ window.renderStudentLayout = async () => {
                     <div id="student-content-msttimetable" style="display: none;">
                         <div id="student-mst-timetable-area"></div>
                     </div>
+                    <div id="student-content-updateprofile" style="display: none;">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start;">
+                            <!-- Update CGPA card -->
+                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
+                                    <input type="checkbox" id="chk-update-cgpa" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('cgpa', this.checked)">
+                                    <label for="chk-update-cgpa" style="margin:0; cursor:pointer;">Update CGPA</label>
+                                </div>
+                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
+                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
+                                </div>
+                                <div id="group-update-cgpa" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:0.5rem;">
+                                    <label style="font-size:0.85rem; font-weight:700; color:#334155;">Current CGPA *</label>
+                                    <input type="number" step="0.01" min="0" max="10" id="input-update-cgpa" value="${student.current_cgpa || ""}" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit;">
+                                    <span style="font-size:0.72rem; color:var(--text-muted);">Enter CGPA between 0 and 10</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Update SGPA card -->
+                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
+                                    <input type="checkbox" id="chk-update-sgpa" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('sgpa', this.checked)">
+                                    <label for="chk-update-sgpa" style="margin:0; cursor:pointer;">Update Semester-wise SGPA</label>
+                                </div>
+                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
+                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
+                                </div>
+                                <div id="group-update-sgpa" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:0.75rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-size:0.82rem; font-weight:700; color:#334155;">SGPA Values (max 8)</span>
+                                        <button class="btn-secondary" onclick="window.addStudentSgpaField()" style="padding:0.35rem 0.75rem; font-size:0.75rem; font-weight:700; border-radius:0.4rem;">+ Add Semester</button>
+                                    </div>
+                                    <div id="sgpa-fields-container" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+                                        <!-- Will populate dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Update Extra / Achievements card -->
+                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem; grid-column: 1 / -1;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
+                                    <input type="checkbox" id="chk-update-achievements" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('achievements', this.checked)">
+                                    <label for="chk-update-achievements" style="margin:0; cursor:pointer;">Update Achievements</label>
+                                </div>
+                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; max-width: max-content;">
+                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
+                                </div>
+                                <div id="group-update-achievements" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:1rem;">
+                                    <div>
+                                        <label style="font-weight:700; margin-bottom:0.5rem; display:block; font-size:0.85rem;">My Pending Achievements List</label>
+                                        <div id="student-achievements-temp-list" style="max-height:160px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;">
+                                            <span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements added yet.</span>
+                                        </div>
+                                    </div>
+                                    <div style="border-top:1px solid var(--border); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.75rem;">
+                                        <label style="font-weight:700; color:#10b981; font-size:0.85rem;">🏆 Add New Achievement</label>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label style="font-size:0.78rem;">Achievement Type</label>
+                                                <select id="student-achievement-type-select" style="padding:0.5rem; width:100%; border:1px solid var(--border); border-radius:0.5rem; background:var(--bg-dark); color:var(--text-main);" onchange="window.updateStudentAchievementPlaceholder(this.value)">
+                                                    <option value="">-- Select Type --</option>
+                                                    <option value="Internship">Internship</option>
+                                                    <option value="Hackathon">Hackathon</option>
+                                                    <option value="Sports">Sports</option>
+                                                    <option value="Certifications">Certifications</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label style="font-size:0.78rem;" id="student-achievement-name-label">Details / Name</label>
+                                                <input type="text" id="student-achievement-name-input" placeholder="e.g. Google Web Development Certification, Basketball Runner Up, etc." style="padding:0.6rem; border:1px solid var(--border); border-radius:0.5rem; width:100%; background:var(--bg-dark); color:var(--text-main);">
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-primary" onclick="window.addStudentTempAchievement()" style="background:#10b981; border:none; padding:0.4rem 1rem; align-self:flex-end; font-size:0.8rem; font-weight:700; box-shadow:none;">+ Add to List</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Update Button -->
+                        <div style="margin-top:2rem; display:flex; justify-content:center;">
+                            <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="save" style="width:18px; height:18px;"></i> Update Selected Fields
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
+                    document.getElementById("student-content-msttimetable")
+                        .style.display = "none";
     lucide.createIcons();
     if (currentState.ttRealtimeChannel) {
       supabaseClient.removeChannel(currentState.ttRealtimeChannel);
@@ -1278,7 +1368,10 @@ window.switchStudentTab = (tab) => {
     "student-content-msttimetable",
   );
 
-  [btnSubject, btnDate, btnTimetable, btnMstMarks, btnMstTimetable].forEach(
+  const btnUpdateProfile = document.getElementById("student-tab-updateprofile");
+  const contentUpdateProfile = document.getElementById("student-content-updateprofile");
+
+  [btnSubject, btnDate, btnTimetable, btnMstMarks, btnMstTimetable, btnUpdateProfile].forEach(
     (b) => b?.classList.remove("active"),
   );
   if (contentSubject) contentSubject.style.display = "none";
@@ -1286,6 +1379,7 @@ window.switchStudentTab = (tab) => {
   if (contentTimetable) contentTimetable.style.display = "none";
   if (contentMstMarks) contentMstMarks.style.display = "none";
   if (contentMstTimetable) contentMstTimetable.style.display = "none";
+  if (contentUpdateProfile) contentUpdateProfile.style.display = "none";
 
   if (tab === "subject") {
     btnSubject?.classList.add("active");
@@ -1310,6 +1404,237 @@ window.switchStudentTab = (tab) => {
     if (contentMstTimetable) {
       contentMstTimetable.style.display = "block";
       window.loadStudentMstTimetable();
+    }
+  } else if (tab === "updateprofile") {
+    btnUpdateProfile?.classList.add("active");
+    if (contentUpdateProfile) {
+      contentUpdateProfile.style.display = "block";
+      window.initStudentUpdateProfileTab();
+    }
+  }
+};
+
+window.initStudentUpdateProfileTab = () => {
+  const student = currentState.studentData;
+  if (!student) return;
+
+  // Reset checkboxes
+  document.getElementById("chk-update-cgpa").checked = false;
+  document.getElementById("chk-update-sgpa").checked = false;
+  document.getElementById("chk-update-achievements").checked = false;
+
+  window.toggleStudentUpdateField("cgpa", false);
+  window.toggleStudentUpdateField("sgpa", false);
+  window.toggleStudentUpdateField("achievements", false);
+
+  // Set CGPA input
+  document.getElementById("input-update-cgpa").value = student.current_cgpa || "";
+
+  // Render SGPA fields
+  window._studentSgpaValues = Array.isArray(student.extra_attendance?.sgpa)
+    ? [...student.extra_attendance.sgpa]
+    : [0, 0, 0, 0];
+  window.renderStudentSgpaFields();
+
+  // Render Achievements
+  window._studentTempAchievements = Array.isArray(student.achievements)
+    ? [...student.achievements]
+    : [];
+  window.renderStudentAchievementsList();
+};
+
+window.toggleStudentUpdateField = (field, checked) => {
+  const group = document.getElementById(`group-update-${field}`);
+  if (group) {
+    group.style.opacity = checked ? "1" : "0.5";
+    group.style.pointerEvents = checked ? "auto" : "none";
+  }
+};
+
+window.renderStudentSgpaFields = () => {
+  const container = document.getElementById("sgpa-fields-container");
+  if (!container) return;
+
+  container.innerHTML = window._studentSgpaValues
+    .map((val, idx) => `
+      <div style="display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Sem ${idx + 1}</span>
+          ${window._studentSgpaValues.length > 1 ? `
+            <button onclick="window.removeStudentSgpaField(${idx})" style="background:none; border:none; color:var(--error); font-size:0.8rem; cursor:pointer;">&times;</button>
+          ` : ""}
+        </div>
+        <input type="number" step="0.01" min="0" max="10" class="student-sgpa-input" data-index="${idx}" value="${val}" style="padding:0.5rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-family:inherit;">
+      </div>
+    `)
+    .join("");
+};
+
+window.addStudentSgpaField = () => {
+  if (window._studentSgpaValues.length >= 8) {
+    showToast("Maximum of 8 semesters allowed", "error");
+    return;
+  }
+  window._studentSgpaValues.push(0);
+  window.renderStudentSgpaFields();
+};
+
+window.removeStudentSgpaField = (idx) => {
+  window._studentSgpaValues.splice(idx, 1);
+  window.renderStudentSgpaFields();
+};
+
+window.updateStudentAchievementPlaceholder = (val) => {
+  const label = document.getElementById("student-achievement-name-label");
+  const input = document.getElementById("student-achievement-name-input");
+  if (!label || !input) return;
+
+  if (val === "Sports") {
+    label.textContent = "Sport Name";
+    input.placeholder = "e.g. Basketball National Tournament, Cricket Captain";
+  } else if (val === "Internship") {
+    label.textContent = "Internship Details";
+    input.placeholder = "e.g. Amazon Software Engineer Intern (3 Months)";
+  } else if (val === "Hackathon") {
+    label.textContent = "Hackathon Details";
+    input.placeholder = "e.g. Smart India Hackathon 2026 Winner";
+  } else if (val === "Certifications") {
+    label.textContent = "Certification Name";
+    input.placeholder = "e.g. AWS Certified Solutions Architect";
+  } else {
+    label.textContent = "Details / Name";
+    input.placeholder = "e.g. Details of achievement...";
+  }
+};
+
+window.renderStudentAchievementsList = () => {
+  const container = document.getElementById("student-achievements-temp-list");
+  if (!container) return;
+
+  if (window._studentTempAchievements.length === 0) {
+    container.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements added yet.</span>`;
+    return;
+  }
+
+  container.innerHTML = window._studentTempAchievements
+    .map((a, idx) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.5rem 0.75rem; border-radius:0.5rem; border:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${a.type}</span>
+              <span style="font-weight:600; font-size:0.83rem;">${a.name}</span>
+          </div>
+          <button onclick="window.removeStudentTempAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; padding:0.2rem; display:flex; align-items:center; justify-content:center;">&times;</button>
+      </div>
+    `)
+    .join("");
+};
+
+window.addStudentTempAchievement = () => {
+  const typeSelect = document.getElementById("student-achievement-type-select");
+  const nameInput = document.getElementById("student-achievement-name-input");
+  if (!typeSelect || !nameInput) return;
+
+  const type = typeSelect.value;
+  const name = nameInput.value.trim();
+
+  if (!type) {
+    showToast("Please select an achievement type", "error");
+    return;
+  }
+  if (!name) {
+    showToast("Please enter achievement details", "error");
+    return;
+  }
+
+  window._studentTempAchievements.push({ type, name });
+  nameInput.value = "";
+  window.renderStudentAchievementsList();
+};
+
+window.removeStudentTempAchievement = (idx) => {
+  window._studentTempAchievements.splice(idx, 1);
+  window.renderStudentAchievementsList();
+};
+
+window.submitStudentProfileUpdates = async () => {
+  const student = currentState.studentData;
+  if (!student) return;
+
+  const chkCgpa = document.getElementById("chk-update-cgpa").checked;
+  const chkSgpa = document.getElementById("chk-update-sgpa").checked;
+  const chkAchievements = document.getElementById("chk-update-achievements").checked;
+
+  if (!chkCgpa && !chkSgpa && !chkAchievements) {
+    showToast("Please check at least one field to update", "error");
+    return;
+  }
+
+  const btn = document.getElementById("btn-update-selected-fields");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Submitting Requests...";
+  }
+
+  try {
+    const requests = [];
+
+    if (chkCgpa) {
+      const newCgpaVal = parseFloat(document.getElementById("input-update-cgpa").value);
+      if (isNaN(newCgpaVal) || newCgpaVal < 0 || newCgpaVal > 10) {
+        throw new Error("CGPA must be a valid number between 0 and 10");
+      }
+      requests.push({
+        student_id: student.id,
+        field_name: "CGPA",
+        old_value: student.current_cgpa || null,
+        new_value: newCgpaVal,
+        status: "Pending"
+      });
+    }
+
+    if (chkSgpa) {
+      const inputs = document.querySelectorAll(".student-sgpa-input");
+      const values = Array.from(inputs).map(inp => {
+        const v = parseFloat(inp.value);
+        if (isNaN(v) || v < 0 || v > 10) {
+          throw new Error("All SGPA values must be valid numbers between 0 and 10");
+        }
+        return v;
+      });
+      requests.push({
+        student_id: student.id,
+        field_name: "SGPA",
+        old_value: student.extra_attendance?.sgpa || null,
+        new_value: values,
+        status: "Pending"
+      });
+    }
+
+    if (chkAchievements) {
+      requests.push({
+        student_id: student.id,
+        field_name: "Achievements",
+        old_value: student.achievements || [],
+        new_value: window._studentTempAchievements,
+        status: "Pending"
+      });
+    }
+
+    const { error } = await supabaseClient
+      .from("student_updates")
+      .insert(requests);
+
+    if (error) throw error;
+
+    showToast("Update requests submitted for coordinator approval!");
+    window.initStudentUpdateProfileTab();
+  } catch (err) {
+    showToast(err.message, "error");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="save" style="width:18px; height:18px;"></i> Update Selected Fields`;
+      lucide.createIcons();
     }
   }
 };
@@ -1690,7 +2015,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                     ${
                       currentState.teacherData?.is_coordinator
                         ? `
-                        <div class="nav-item ${["coordDashboard", "coordAllStudents", "coordEditStudents", "coordEditAttendance"].includes(currentState.view) ? "active" : ""}" onclick="window.toggleSubmenu('coordinator')">
+                        <div class="nav-item ${["coordDashboard", "coordAllStudents", "coordEditStudents", "coordEditAttendance", "coordStudentRequests"].includes(currentState.view) ? "active" : ""}" onclick="window.toggleSubmenu('coordinator')">
                             <span class="nav-item-content">
                                 <i data-lucide="shield-alert"></i> Coordinator
                             </span>
@@ -1704,6 +2029,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                             <div class="nav-sub-item ${currentState.view === "coordAllStudents" ? "active" : ""}" onclick="window.switchView('coordAllStudents')">All Students</div>
                             <div class="nav-sub-item ${currentState.view === "coordEditStudents" ? "active" : ""}" onclick="window.switchView('coordEditStudents')">Edit Students</div>
                             <div class="nav-sub-item ${currentState.view === "coordEditAttendance" ? "active" : ""}" onclick="window.switchView('coordEditAttendance')">Edit Attendance</div>
+                            <div class="nav-sub-item ${currentState.view === "coordStudentRequests" ? "active" : ""}" onclick="window.switchView('coordStudentRequests')">Student Requests</div>
                         </div>`
                             : ""
                         }
@@ -2064,6 +2390,9 @@ function renderActiveView() {
         break;
       case "coordEditAttendance":
         renderCoordEditAttendance(container);
+        break;
+      case "coordStudentRequests":
+        renderCoordStudentRequests(container);
         break;
       case "markMstMarks":
         renderMstMarksEntry(container);
@@ -8234,6 +8563,544 @@ window.showEditExtraAttendanceModal = (studentId) => {
     },
     { confirmText: "Save Extra Attendance", cancelText: "Cancel" },
   );
+};
+
+async function renderCoordStudentRequests(container) {
+  const teacher = currentState.teacherData;
+  const coordClass = teacher?.coordinator_class
+    ? currentState.classes.find((c) => c.id === teacher.coordinator_class)
+    : null;
+
+  if (!coordClass) {
+    container.innerHTML = `
+            <div style="background: rgba(99,102,241,0.03); border: 1px solid var(--border); border-radius: 1rem; padding: 3rem; color:var(--text-muted); font-size:1.1rem; text-align:center; margin-top:2rem;">
+                ⚠️ You are not designated as a coordinator for any class section. Please contact the Admin.
+            </div>
+        `;
+    return;
+  }
+
+  // Fetch students of coordinated class
+  const { data: classStudents } = await supabaseClient
+    .from("students")
+    .select("id, name, roll_no")
+    .eq("branch", coordClass.branch)
+    .eq("year", coordClass.year)
+    .eq("section", coordClass.section);
+
+  const studentIds = (classStudents || []).map((s) => s.id);
+
+  if (studentIds.length === 0) {
+    container.innerHTML = `
+        <div style="background: rgba(99,102,241,0.03); border: 1px solid var(--border); border-radius: 1rem; padding: 3rem; color:var(--text-muted); font-size:1.1rem; text-align:center; margin-top:2rem;">
+            No students found in your coordinated class (${coordClass.branch} ${coordClass.year} Sec ${coordClass.section}).
+        </div>
+    `;
+    return;
+  }
+
+  // Fetch updates
+  const { data: updates, error } = await supabaseClient
+    .from("student_updates")
+    .select("*, students(name, roll_no)")
+    .in("student_id", studentIds)
+    .order("requested_at", { ascending: false });
+
+  if (error) {
+    showToast(error.message, "error");
+    return;
+  }
+
+  currentState.coordRequestsTab = currentState.coordRequestsTab || "pending";
+  const activeTab = currentState.coordRequestsTab;
+
+  const pendingRequests = (updates || []).filter(r => r.status === "Pending");
+  const historyRequests = (updates || []).filter(r => r.status !== "Pending");
+
+  const displayRequests = activeTab === "pending" ? pendingRequests : historyRequests;
+
+  container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h1 style="margin:0;">Student Profile Update Requests</h1>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.15rem 0 0 0;">
+                    Review profile updates requested by students of class ${coordClass.branch} ${coordClass.year} Sec ${coordClass.section}.
+                </p>
+            </div>
+            <button class="btn-secondary" onclick="window.switchView('coordDashboard')" style="padding:0.5rem 1rem; font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Return to Dashboard
+            </button>
+        </div>
+
+        <div style="display: flex; background: #f1f5f9; border-radius: var(--radius-sm); padding: 0.2rem; gap: 0.2rem; margin-bottom:1.5rem; max-width: 400px;">
+            <button class="coord-req-tab" data-tab="pending" onclick="window.switchCoordRequestsTab('pending')" style="flex:1; background: ${activeTab === "pending" ? "#003366" : "none"}; color: ${activeTab === "pending" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.5rem; font-size: 0.8rem; font-weight: 700; border-radius: var(--radius-sm); cursor: pointer;">
+                Pending (${pendingRequests.length})
+            </button>
+            <button class="coord-req-tab" data-tab="history" onclick="window.switchCoordRequestsTab('history')" style="flex:1; background: ${activeTab === "history" ? "#003366" : "none"}; color: ${activeTab === "history" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.5rem; font-size: 0.8rem; font-weight: 700; border-radius: var(--radius-sm); cursor: pointer;">
+                History (${historyRequests.length})
+            </button>
+        </div>
+
+        <div class="card" style="padding:0; border-radius:1rem; overflow:hidden; border: 1px solid var(--border); background:#ffffff;">
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+                    <thead>
+                        <tr style="background:#f8fafc; border-bottom:2px solid var(--border); color:var(--text-muted); font-weight:700;">
+                            <th style="padding:1rem;">Student Details</th>
+                            <th style="padding:1rem;">Field</th>
+                            <th style="padding:1rem;">Proposed Change</th>
+                            <th style="padding:1rem;">Date Requested</th>
+                            ${activeTab === "history" ? `<th style="padding:1rem;">Status / Reviewer</th>` : `<th style="padding:1rem; text-align:right;">Actions</th>`}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${displayRequests.length === 0 ? `
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding:4rem; color:var(--text-muted); font-style:italic;">
+                                    No requests found in this tab.
+                                </td>
+                            </tr>
+                        ` : displayRequests.map(req => {
+                            const name = req.students?.name || "Unknown Student";
+                            const rollNo = req.students?.roll_no || "N/A";
+                            const field = req.field_name || "N/A";
+                            const reqDate = new Date(req.requested_at).toLocaleDateString("en-US", {
+                                year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+                            });
+
+                            let changeHtml = "";
+                            if (field === "CGPA") {
+                                const oldVal = req.old_value !== null ? parseFloat(req.old_value).toFixed(2) : "None";
+                                const newVal = req.new_value !== null ? parseFloat(req.new_value).toFixed(2) : "None";
+                                changeHtml = `
+                                    <div style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+                                        <span style="color:var(--text-muted); text-decoration:line-through;">${oldVal}</span>
+                                        <i data-lucide="arrow-right" style="width:14px; height:14px; color:var(--text-muted);"></i>
+                                        <span style="color:#0f766e; background:#ccfbf1; padding:0.15rem 0.4rem; border-radius:0.25rem;">${newVal}</span>
+                                    </div>
+                                `;
+                            } else if (field === "SGPA") {
+                                const oldVal = Array.isArray(req.old_value) ? req.old_value : [];
+                                const newVal = Array.isArray(req.new_value) ? req.new_value : [];
+                                changeHtml = `
+                                    <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem;">
+                                        <div style="display:flex; align-items:center; gap:0.25rem; color:var(--text-muted);"><span style="font-weight:700;">Old:</span> [${oldVal.join(", ") || "None"}]</div>
+                                        <div style="display:flex; align-items:center; gap:0.25rem; color:#0f766e;"><span style="font-weight:700;">New:</span> <span style="background:#ccfbf1; padding:0.1rem 0.35rem; border-radius:0.25rem; font-weight:600;">[${newVal.join(", ")}]</span></div>
+                                    </div>
+                                `;
+                            } else if (field === "Achievements") {
+                                const oldVal = Array.isArray(req.old_value) ? req.old_value : [];
+                                const newVal = Array.isArray(req.new_value) ? req.new_value : [];
+
+                                // Find newly added ones
+                                const oldKeys = oldVal.map(x => `${x.type || ""}:${x.name || ""}`);
+                                const changesList = newVal.map(n => {
+                                    const key = `${n.type || ""}:${n.name || ""}`;
+                                    const isNew = !oldKeys.includes(key);
+                                    return `
+                                        <span style="display:inline-flex; align-items:center; gap:0.25rem; background:${isNew ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-dark)'}; color:${isNew ? '#10b981' : 'var(--text-muted)'}; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.75rem; border:1px solid ${isNew ? '#10b981' : 'var(--border)'};">
+                                            <span style="font-weight:700; font-size:0.6rem; text-transform:uppercase;">${n.type}</span>
+                                            <span>${n.name}</span>
+                                            ${isNew ? '<span style="font-size:0.58rem; background:#10b981; color:#ffffff; padding:0 0.2rem; border-radius:0.15rem; font-weight:800;">NEW</span>' : ''}
+                                        </span>
+                                    `;
+                                }).join(" ");
+
+                                changeHtml = `<div style="display:flex; flex-wrap:wrap; gap:0.35rem; max-width:400px;">${changesList || '<span style="color:var(--text-muted);">Empty List</span>'}</div>`;
+                            }
+
+                            let actionHtml = "";
+                            if (activeTab === "pending") {
+                                actionHtml = `
+                                    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                                        <button onclick="window.approveStudentRequest('${req.id}')" style="background:#10b981; border:none; color:#ffffff; font-weight:700; padding:0.4rem 0.75rem; border-radius:0.4rem; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:0.25rem;">
+                                            <i data-lucide="check" style="width:14px; height:14px;"></i> Approve
+                                        </button>
+                                        <button onclick="window.editAndApproveStudentRequest('${req.id}')" style="background:#003366; border:none; color:#ffffff; font-weight:700; padding:0.4rem 0.75rem; border-radius:0.4rem; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:0.25rem;">
+                                            <i data-lucide="edit" style="width:14px; height:14px;"></i> Edit
+                                        </button>
+                                        <button onclick="window.rejectStudentRequest('${req.id}')" style="background:#ef4444; border:none; color:#ffffff; font-weight:700; padding:0.4rem 0.75rem; border-radius:0.4rem; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:0.25rem;">
+                                            <i data-lucide="x" style="width:14px; height:14px;"></i> Reject
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                const reviewerName = currentState.teachers.find(t => t.id === req.reviewer_id)?.name || "Coordinator";
+                                const isApproved = req.status === "Approved";
+                                actionHtml = `
+                                    <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                                        <span style="align-self:flex-start; font-weight:700; font-size:0.75rem; padding:0.15rem 0.5rem; border-radius:0.25rem; text-transform:uppercase; background:${isApproved ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${isApproved ? '#10b981' : '#ef4444'}; border:1px solid ${isApproved ? '#10b981' : '#ef4444'};">
+                                            ${req.status}
+                                        </span>
+                                        <span style="font-size:0.72rem; color:var(--text-muted);">By: ${reviewerName}</span>
+                                        ${req.rejection_reason ? `<span style="font-size:0.72rem; color:#b91c1c; font-style:italic; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${req.rejection_reason}">Reason: ${req.rejection_reason}</span>` : ""}
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <tr style="border-bottom:1px solid var(--border);">
+                                    <td style="padding:1rem; font-weight:600;">
+                                        <div style="color:var(--text-main);">${name}</div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted);">${rollNo}</div>
+                                    </td>
+                                    <td style="padding:1rem; font-weight:700; color:#475569;">${field}</td>
+                                    <td style="padding:1rem;">${changeHtml}</td>
+                                    <td style="padding:1rem; color:var(--text-muted); font-size:0.8rem;">${reqDate}</td>
+                                    <td style="padding:1rem; ${activeTab === "pending" ? "text-align:right;" : ""}">${actionHtml}</td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+  `;
+
+  lucide.createIcons();
+}
+
+window.switchCoordRequestsTab = (tab) => {
+  currentState.coordRequestsTab = tab;
+  const container = document.getElementById("main-content");
+  if (container) renderCoordStudentRequests(container);
+};
+
+window.approveStudentRequest = async (requestId) => {
+  try {
+    // 1. Fetch the request
+    const { data: req, error: fetchErr } = await supabaseClient
+      .from("student_updates")
+      .select("*")
+      .eq("id", requestId)
+      .single();
+
+    if (fetchErr || !req) {
+      throw new Error(fetchErr?.message || "Request not found");
+    }
+
+    const { student_id, field_name, new_value } = req;
+
+    // 2. Apply updates to the student table
+    if (field_name === "CGPA") {
+      const { error: updErr } = await supabaseClient
+        .from("students")
+        .update({ current_cgpa: new_value })
+        .eq("id", student_id);
+      if (updErr) throw updErr;
+    } else if (field_name === "SGPA") {
+      // Fetch student extra_attendance first
+      const { data: student, error: stdErr } = await supabaseClient
+        .from("students")
+        .select("extra_attendance")
+        .eq("id", student_id)
+        .single();
+      if (stdErr) throw stdErr;
+
+      const extra = student.extra_attendance || {};
+      extra.sgpa = new_value;
+
+      const { error: updErr } = await supabaseClient
+        .from("students")
+        .update({ extra_attendance: extra })
+        .eq("id", student_id);
+      if (updErr) throw updErr;
+    } else if (field_name === "Achievements") {
+      const { error: updErr } = await supabaseClient
+        .from("students")
+        .update({ achievements: new_value })
+        .eq("id", student_id);
+      if (updErr) throw updErr;
+    }
+
+    // 3. Update the request status in student_updates
+    const { error: reqErr } = await supabaseClient
+      .from("student_updates")
+      .update({
+        status: "Approved",
+        reviewed_at: new Date().toISOString(),
+        reviewer_id: currentState.teacherData.id
+      })
+      .eq("id", requestId);
+    if (reqErr) throw reqErr;
+
+    showToast("Request approved and student profile updated!");
+    await loadAllData();
+    const container = document.getElementById("main-content");
+    if (container) renderCoordStudentRequests(container);
+
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+};
+
+window.rejectStudentRequest = (requestId) => {
+  const content = `
+    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+      <label style="font-weight:700; font-size:0.9rem; color:var(--text-main);">Reason for Rejection *</label>
+      <textarea id="reject-reason-input" placeholder="Enter reason for rejecting this request..." style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; min-height:100px; resize:vertical;"></textarea>
+    </div>
+  `;
+
+  showModal(
+    "Reject Request",
+    content,
+    async () => {
+      const reason = document.getElementById("reject-reason-input").value.trim();
+      if (!reason) {
+        showToast("Please enter a reason for rejection", "error");
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from("student_updates")
+          .update({
+            status: "Rejected",
+            rejection_reason: reason,
+            reviewed_at: new Date().toISOString(),
+            reviewer_id: currentState.teacherData.id
+          })
+          .eq("id", requestId);
+
+        if (error) throw error;
+
+        showToast("Request rejected.");
+        closeModal();
+        await loadAllData();
+        const container = document.getElementById("main-content");
+        if (container) renderCoordStudentRequests(container);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    },
+    { confirmText: "Submit Rejection", cancelText: "Cancel" }
+  );
+};
+
+window.editAndApproveStudentRequest = async (requestId) => {
+  try {
+    const { data: req, error } = await supabaseClient
+      .from("student_updates")
+      .select("*")
+      .eq("id", requestId)
+      .single();
+
+    if (error || !req) {
+      throw new Error(error?.message || "Request not found");
+    }
+
+    const { field_name, new_value } = req;
+
+    let content = `<div id="coord-edit-modal-body" style="display:flex; flex-direction:column; gap:1rem;"></div>`;
+
+    if (field_name === "CGPA") {
+      showModal(
+        "Edit and Approve CGPA",
+        content,
+        async () => {
+          const val = parseFloat(document.getElementById("coord-edit-cgpa-val").value);
+          if (isNaN(val) || val < 0 || val > 10) {
+            showToast("CGPA must be a valid number between 0 and 10", "error");
+            return;
+          }
+
+          try {
+            // Update request new_value
+            const { error: reqErr } = await supabaseClient
+              .from("student_updates")
+              .update({ new_value: val })
+              .eq("id", requestId);
+            if (reqErr) throw reqErr;
+
+            // Approve
+            await window.approveStudentRequest(requestId);
+            closeModal();
+          } catch (err) {
+            showToast(err.message, "error");
+          }
+        },
+        { confirmText: "Approve with Changes", cancelText: "Cancel" }
+      );
+
+      // Populate CGPA body
+      const body = document.getElementById("coord-edit-modal-body");
+      if (body) {
+        body.innerHTML = `
+          <label style="font-weight:700; font-size:0.9rem; color:var(--text-main);">CGPA Value</label>
+          <input type="number" step="0.01" min="0" max="10" id="coord-edit-cgpa-val" value="${new_value}" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit;">
+        `;
+      }
+    } else if (field_name === "SGPA") {
+      window._coordEditSgpa = Array.isArray(new_value) ? [...new_value] : [];
+
+      showModal(
+        "Edit and Approve SGPA",
+        content,
+        async () => {
+          const inputs = document.querySelectorAll(".coord-edit-sgpa-input");
+          const values = Array.from(inputs).map(inp => {
+            const v = parseFloat(inp.value);
+            if (isNaN(v) || v < 0 || v > 10) {
+              throw new Error("All SGPA values must be between 0 and 10");
+            }
+            return v;
+          });
+
+          try {
+            // Update request new_value
+            const { error: reqErr } = await supabaseClient
+              .from("student_updates")
+              .update({ new_value: values })
+              .eq("id", requestId);
+            if (reqErr) throw reqErr;
+
+            // Approve
+            await window.approveStudentRequest(requestId);
+            closeModal();
+          } catch (err) {
+            showToast(err.message, "error");
+          }
+        },
+        { confirmText: "Approve with Changes", cancelText: "Cancel" }
+      );
+
+      window.renderCoordEditSgpaFields = () => {
+        const body = document.getElementById("coord-edit-modal-body");
+        if (!body) return;
+
+        body.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem; color:var(--text-main);">SGPA Semesters</label>
+            <button onclick="window.addCoordEditSgpaField()" style="padding:0.35rem 0.75rem; font-size:0.75rem; font-weight:700; border-radius:0.4rem; background:var(--primary); color:white; border:none; cursor:pointer;">+ Add Semester</button>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; max-height:250px; overflow-y:auto; padding:0.25rem;">
+            ${window._coordEditSgpa.map((v, idx) => `
+              <div style="display:flex; flex-direction:column; gap:0.25rem; border:1px solid var(--border); padding:0.5rem; border-radius:0.4rem; background:rgba(0,0,0,0.01);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Sem ${idx + 1}</span>
+                  <button onclick="window.removeCoordEditSgpaField(${idx})" style="background:none; border:none; color:var(--error); font-size:0.95rem; cursor:pointer; font-weight:700;">&times;</button>
+                </div>
+                <input type="number" step="0.01" min="0" max="10" class="coord-edit-sgpa-input" value="${v}" style="padding:0.4rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.3rem; color:var(--text-main); font-family:inherit;">
+              </div>
+            `).join("")}
+          </div>
+        `;
+      };
+
+      window.addCoordEditSgpaField = () => {
+        if (window._coordEditSgpa.length >= 8) {
+          showToast("Maximum of 8 semesters allowed", "error");
+          return;
+        }
+        window._coordEditSgpa.push(0);
+        window.renderCoordEditSgpaFields();
+      };
+
+      window.removeCoordEditSgpaField = (idx) => {
+        window._coordEditSgpa.splice(idx, 1);
+        window.renderCoordEditSgpaFields();
+      };
+
+      window.renderCoordEditSgpaFields();
+    } else if (field_name === "Achievements") {
+      window._coordEditAchievements = Array.isArray(new_value) ? [...new_value] : [];
+
+      showModal(
+        "Edit and Approve Achievements",
+        content,
+        async () => {
+          try {
+            // Update request new_value
+            const { error: reqErr } = await supabaseClient
+              .from("student_updates")
+              .update({ new_value: window._coordEditAchievements })
+              .eq("id", requestId);
+            if (reqErr) throw reqErr;
+
+            // Approve
+            await window.approveStudentRequest(requestId);
+            closeModal();
+          } catch (err) {
+            showToast(err.message, "error");
+          }
+        },
+        { confirmText: "Approve with Changes", cancelText: "Cancel", isWide: true }
+      );
+
+      window.renderCoordEditAchievementsList = () => {
+        const body = document.getElementById("coord-edit-modal-body");
+        if (!body) return;
+
+        body.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div>
+              <label style="font-weight:700; margin-bottom:0.5rem; display:block; font-size:0.9rem;">Achievements List</label>
+              <div style="max-height:180px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;">
+                ${window._coordEditAchievements.length === 0 ? `
+                  <span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements.</span>
+                ` : window._coordEditAchievements.map((a, idx) => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.4rem 0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                      <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${a.type}</span>
+                      <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${a.name}</span>
+                    </div>
+                    <button onclick="window.removeCoordEditAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1rem; cursor:pointer; font-weight:700;">&times;</button>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--border); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.75rem;">
+              <label style="font-weight:700; color:#10b981; font-size:0.85rem;">🏆 Add New Achievement</label>
+              <div style="display:grid; grid-template-columns: 1fr 2fr; gap:0.75rem; align-items:end;">
+                <div>
+                  <label style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:0.25rem;">Type</label>
+                  <select id="coord-ach-type-select" style="padding:0.4rem; width:100%; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
+                    <option value="Internship">Internship</option>
+                    <option value="Hackathon">Hackathon</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Certifications">Certifications</option>
+                    <option value="Others">Others</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:0.25rem;">Details / Name</label>
+                  <input type="text" id="coord-ach-name-input" placeholder="e.g. AWS Certified Solutions Architect" style="padding:0.4rem; width:100%; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
+                </div>
+              </div>
+              <button onclick="window.addCoordEditAchievement()" style="background:#10b981; color:white; border:none; padding:0.4rem; border-radius:0.4rem; font-weight:700; font-size:0.8rem; cursor:pointer;">+ Add to List</button>
+            </div>
+          </div>
+        `;
+      };
+
+      window.addCoordEditAchievement = () => {
+        const typeSelect = document.getElementById("coord-ach-type-select");
+        const nameInput = document.getElementById("coord-ach-name-input");
+        if (!typeSelect || !nameInput) return;
+
+        const type = typeSelect.value;
+        const name = nameInput.value.trim();
+
+        if (!type || !name) {
+          showToast("Please select a type and enter details", "error");
+          return;
+        }
+
+        window._coordEditAchievements.push({ type, name });
+        window.renderCoordEditAchievementsList();
+      };
+
+      window.removeCoordEditAchievement = (idx) => {
+        window._coordEditAchievements.splice(idx, 1);
+        window.renderCoordEditAchievementsList();
+      };
+
+      window.renderCoordEditAchievementsList();
+    }
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 };
 
 async function renderCoordEditStudents(container) {
