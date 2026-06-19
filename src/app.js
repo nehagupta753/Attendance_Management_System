@@ -2234,45 +2234,52 @@ window.onManualFormChange = () => {
   window.checkTeacherSelectionValid();
   window.filterConductingTeachers([]);
 
-  // Dynamically filter subjects based on Year + Branch + Section
   const year = document.getElementById("sel-year")?.value || "";
   const branch = document.getElementById("sel-branch")?.value || "";
   const section = document.getElementById("sel-section")?.value || "";
   const teacher = currentState.teacherData;
 
-  if (year && branch && section && teacher) {
-    // Find class matching selected fields
-    const targetClass = currentState.classes.find(
-      (c) => c.year === year && c.branch === branch && c.section === section
+  if (teacher) {
+    // 1. Find all subjects this teacher teaches overall across the entire timetable
+    const teacherSlots = currentState.timetable.filter(
+      (t) => t.teacher_id === teacher.id || (t.teacher_ids && t.teacher_ids.includes(teacher.id))
     );
-    if (targetClass) {
-      // Find subjects this teacher teaches in this class based on teacher assignments or timetable
-      const classTimetableSlots = currentState.timetable.filter(
-        (t) =>
-          t.class_id === targetClass.id &&
-          (t.teacher_id === teacher.id || (t.teacher_ids && t.teacher_ids.includes(teacher.id)))
-      );
-      const classSubjectIds = [...new Set(classTimetableSlots.map((t) => t.subject_id))];
-      const matchedSubjects = currentState.subjects.filter((s) => classSubjectIds.includes(s.id));
+    const teacherSubjectIds = [...new Set(teacherSlots.map((t) => t.subject_id))];
+    
+    // Default to only the subjects this teacher teaches (or fall back to all subjects if they teach none)
+    let filteredSubjects = teacherSubjectIds.length > 0
+      ? currentState.subjects.filter((s) => teacherSubjectIds.includes(s.id))
+      : currentState.subjects;
 
-      const populateSelect = (selectId) => {
-        const selectEl = document.getElementById(selectId);
-        if (selectEl) {
-          const currentVal = selectEl.value;
-          selectEl.innerHTML = `<option value="" disabled>Select Subject</option>` + 
-            matchedSubjects.map((s) => `<option value="${s.id}">${s.code} - ${s.name}</option>`).join("");
-          if (matchedSubjects.some(s => s.id === currentVal)) {
-            selectEl.value = currentVal;
-          } else {
-            selectEl.value = "";
-          }
-        }
-      };
-      
-      populateSelect("sel-subject");
-      populateSelect("sel-subject-b1");
-      populateSelect("sel-subject-b2");
+    // 2. If a specific class is selected, further filter to subjects this teacher teaches IN THAT CLASS
+    if (year && branch && section) {
+      const targetClass = currentState.classes.find(
+        (c) => c.year === year && c.branch === branch && c.section === section
+      );
+      if (targetClass) {
+        const classSlots = teacherSlots.filter((t) => t.class_id === targetClass.id);
+        const classSubjectIds = [...new Set(classSlots.map((t) => t.subject_id))];
+        filteredSubjects = currentState.subjects.filter((s) => classSubjectIds.includes(s.id));
+      }
     }
+
+    const populateSelect = (selectId) => {
+      const selectEl = document.getElementById(selectId);
+      if (selectEl) {
+        const currentVal = selectEl.value;
+        selectEl.innerHTML = `<option value="" disabled>Select Subject</option>` + 
+          filteredSubjects.map((s) => `<option value="${s.id}">${s.code} - ${s.name}</option>`).join("");
+        if (filteredSubjects.some(s => s.id === currentVal)) {
+          selectEl.value = currentVal;
+        } else {
+          selectEl.value = "";
+        }
+      }
+    };
+    
+    populateSelect("sel-subject");
+    populateSelect("sel-subject-b1");
+    populateSelect("sel-subject-b2");
   }
 };
 
