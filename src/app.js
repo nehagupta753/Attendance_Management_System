@@ -989,26 +989,30 @@ window.renderStudentLayout = async () => {
                         </div>
                     </div>
                     <div class="student-tab-container" style="flex-wrap: wrap; justify-content: center; gap: 0.5rem; border-radius: 1rem;">
-                        <button id="student-tab-subject" class="student-tab-btn active" onclick="switchStudentTab('subject')">
-                            <i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Subject-wise
-                        </button>
-                        <button id="student-tab-date" class="student-tab-btn" onclick="switchStudentTab('date')">
-                            <i data-lucide="calendar" style="width: 18px; height: 18px;"></i> Date-wise Timeline
+                        <button id="student-tab-attendance" class="student-tab-btn active" onclick="switchStudentTab('attendance')">
+                            <i data-lucide="calendar" style="width: 18px; height: 18px;"></i> View Attendance
                         </button>
                         <button id="student-tab-timetable" class="student-tab-btn" onclick="switchStudentTab('timetable')">
                             <i data-lucide="layout-grid" style="width: 18px; height: 18px;"></i> My Timetable
                         </button>
-                        <button id="student-tab-mstmarks" class="student-tab-btn" onclick="switchStudentTab('mstmarks')">
-                            <i data-lucide="award" style="width: 18px; height: 18px;"></i> MST Marks
-                        </button>
-                        <button id="student-tab-msttimetable" class="student-tab-btn" onclick="switchStudentTab('msttimetable')">
-                            <i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i> MST Timetable
+                        <button id="student-tab-mst" class="student-tab-btn" onclick="switchStudentTab('mst')">
+                            <i data-lucide="award" style="width: 18px; height: 18px;"></i> MST
                         </button>
                         <button id="student-tab-updateprofile" class="student-tab-btn" onclick="switchStudentTab('updateprofile')">
                             <i data-lucide="user-cog" style="width: 18px; height: 18px;"></i> Update Profile
                         </button>
                     </div>
-                    <div id="student-content-subject">
+                    
+                    <div id="student-content-attendance">
+                        <div style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:1.5rem; background:rgba(0,0,0,0.02); padding:0.4rem; border-radius:0.75rem; border:1px solid var(--border); width:fit-content; margin-left:auto; margin-right:auto;">
+                            <button id="student-subtab-subject" class="student-tab-btn active" onclick="window.switchStudentSubTab('attendance', 'subject')" style="padding:0.45rem 1.25rem; font-size:0.85rem; border-radius:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                                <i data-lucide="book-open" style="width: 15px; height: 15px;"></i> Subject-wise
+                            </button>
+                            <button id="student-subtab-date" class="student-tab-btn" onclick="window.switchStudentSubTab('attendance', 'date')" style="padding:0.45rem 1.25rem; font-size:0.85rem; border-radius:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                                <i data-lucide="clock" style="width: 15px; height: 15px;"></i> Time-wise
+                            </button>
+                        </div>
+                        <div id="student-content-subject">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
                             ${
                               Object.keys(subjectMetrics).length === 0
@@ -1194,16 +1198,27 @@ window.renderStudentLayout = async () => {
                             </div>
                         </div>
                     </div>
+                    </div>
                     <div id="student-content-timetable" style="display: none;">
                         <div id="student-timetable-grid" style="overflow-x:auto;">
                             <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading your timetable...</div>
                         </div>
                     </div>
-                    <div id="student-content-mstmarks" style="display: none;">
-                        <div id="student-mst-marks-area"></div>
-                    </div>
-                    <div id="student-content-msttimetable" style="display: none;">
-                        <div id="student-mst-timetable-area"></div>
+                    <div id="student-content-mst" style="display: none;">
+                        <div style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:1.5rem; background:rgba(0,0,0,0.02); padding:0.4rem; border-radius:0.75rem; border:1px solid var(--border); width:fit-content; margin-left:auto; margin-right:auto;">
+                            <button id="student-subtab-msttimetable" class="student-tab-btn active" onclick="window.switchStudentSubTab('mst', 'msttimetable')" style="padding:0.45rem 1.25rem; font-size:0.85rem; border-radius:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                                <i data-lucide="calendar-days" style="width: 15px; height: 15px;"></i> MST Timetable
+                            </button>
+                            <button id="student-subtab-mstmarks" class="student-tab-btn" onclick="window.switchStudentSubTab('mst', 'mstmarks')" style="padding:0.45rem 1.25rem; font-size:0.85rem; border-radius:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                                <i data-lucide="award" style="width: 15px; height: 15px;"></i> MST Marks
+                            </button>
+                        </div>
+                        <div id="student-content-msttimetable">
+                            <div id="student-mst-timetable-area"></div>
+                        </div>
+                        <div id="student-content-mstmarks" style="display: none;">
+                            <div id="student-mst-marks-area"></div>
+                        </div>
                     </div>
                     <div id="student-content-updateprofile" style="display: none;">
                         <div id="student-update-pending-alert"></div>
@@ -1421,62 +1436,89 @@ window.renderStudentLayout = async () => {
 };
 
 window.switchStudentTab = (tab) => {
-  const btnSubject = document.getElementById("student-tab-subject");
-  const btnDate = document.getElementById("student-tab-date");
+  const btnAttendance = document.getElementById("student-tab-attendance");
   const btnTimetable = document.getElementById("student-tab-timetable");
-  const btnMstMarks = document.getElementById("student-tab-mstmarks");
-  const btnMstTimetable = document.getElementById("student-tab-msttimetable");
-
-  const contentSubject = document.getElementById("student-content-subject");
-  const contentDate = document.getElementById("student-content-date");
-  const contentTimetable = document.getElementById("student-content-timetable");
-  const contentMstMarks = document.getElementById("student-content-mstmarks");
-  const contentMstTimetable = document.getElementById(
-    "student-content-msttimetable",
-  );
-
+  const btnMst = document.getElementById("student-tab-mst");
   const btnUpdateProfile = document.getElementById("student-tab-updateprofile");
+
+  const contentAttendance = document.getElementById("student-content-attendance");
+  const contentTimetable = document.getElementById("student-content-timetable");
+  const contentMst = document.getElementById("student-content-mst");
   const contentUpdateProfile = document.getElementById("student-content-updateprofile");
 
-  [btnSubject, btnDate, btnTimetable, btnMstMarks, btnMstTimetable, btnUpdateProfile].forEach(
+  [btnAttendance, btnTimetable, btnMst, btnUpdateProfile].forEach(
     (b) => b?.classList.remove("active"),
   );
-  if (contentSubject) contentSubject.style.display = "none";
-  if (contentDate) contentDate.style.display = "none";
+  if (contentAttendance) contentAttendance.style.display = "none";
   if (contentTimetable) contentTimetable.style.display = "none";
-  if (contentMstMarks) contentMstMarks.style.display = "none";
-  if (contentMstTimetable) contentMstTimetable.style.display = "none";
+  if (contentMst) contentMst.style.display = "none";
   if (contentUpdateProfile) contentUpdateProfile.style.display = "none";
 
-  if (tab === "subject") {
-    btnSubject?.classList.add("active");
-    if (contentSubject) contentSubject.style.display = "grid";
-  } else if (tab === "date") {
-    btnDate?.classList.add("active");
-    if (contentDate) contentDate.style.display = "block";
+  if (tab === "attendance") {
+    btnAttendance?.classList.add("active");
+    if (contentAttendance) contentAttendance.style.display = "block";
+    window.switchStudentSubTab('attendance', 'subject');
   } else if (tab === "timetable") {
     btnTimetable?.classList.add("active");
     if (contentTimetable) {
       contentTimetable.style.display = "block";
       loadStudentTimetable();
     }
-  } else if (tab === "mstmarks") {
-    btnMstMarks?.classList.add("active");
-    if (contentMstMarks) {
-      contentMstMarks.style.display = "block";
-      window.loadStudentMstMarks();
-    }
-  } else if (tab === "msttimetable") {
-    btnMstTimetable?.classList.add("active");
-    if (contentMstTimetable) {
-      contentMstTimetable.style.display = "block";
-      window.loadStudentMstTimetable();
-    }
+  } else if (tab === "mst") {
+    btnMst?.classList.add("active");
+    if (contentMst) contentMst.style.display = "block";
+    window.switchStudentSubTab('mst', 'msttimetable');
   } else if (tab === "updateprofile") {
     btnUpdateProfile?.classList.add("active");
     if (contentUpdateProfile) {
       contentUpdateProfile.style.display = "block";
       window.initStudentUpdateProfileTab();
+    }
+  }
+};
+
+window.switchStudentSubTab = (parentTab, subTab) => {
+  if (parentTab === 'attendance') {
+    const btnSubject = document.getElementById("student-subtab-subject");
+    const btnDate = document.getElementById("student-subtab-date");
+    const contentSubject = document.getElementById("student-content-subject");
+    const contentDate = document.getElementById("student-content-date");
+
+    btnSubject?.classList.remove("active");
+    btnDate?.classList.remove("active");
+    if (contentSubject) contentSubject.style.display = "none";
+    if (contentDate) contentDate.style.display = "none";
+
+    if (subTab === 'subject') {
+      btnSubject?.classList.add("active");
+      if (contentSubject) contentSubject.style.display = "grid";
+    } else {
+      btnDate?.classList.add("active");
+      if (contentDate) contentDate.style.display = "block";
+    }
+  } else if (parentTab === 'mst') {
+    const btnTimetable = document.getElementById("student-subtab-msttimetable");
+    const btnMarks = document.getElementById("student-subtab-mstmarks");
+    const contentTimetable = document.getElementById("student-content-msttimetable");
+    const contentMarks = document.getElementById("student-content-mstmarks");
+
+    btnTimetable?.classList.remove("active");
+    btnMarks?.classList.remove("active");
+    if (contentTimetable) contentTimetable.style.display = "none";
+    if (contentMarks) contentMarks.style.display = "none";
+
+    if (subTab === 'msttimetable') {
+      btnTimetable?.classList.add("active");
+      if (contentTimetable) {
+        contentTimetable.style.display = "block";
+        window.loadStudentMstTimetable();
+      }
+    } else {
+      btnMarks?.classList.add("active");
+      if (contentMarks) {
+        contentMarks.style.display = "block";
+        window.loadStudentMstMarks();
+      }
     }
   }
 };
