@@ -1204,91 +1204,100 @@ window.renderStudentLayout = async () => {
                     </div>
                     <div id="student-content-msttimetable" style="display: none;">
                         <div id="student-mst-timetable-area"></div>
-                    </div>
-                    <div id="student-content-updateprofile" style="display: none;">
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start;">
-                            <!-- Update CGPA card -->
-                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
-                                    <input type="checkbox" id="chk-update-cgpa" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('cgpa', this.checked)">
-                                    <label for="chk-update-cgpa" style="margin:0; cursor:pointer;">Update CGPA</label>
-                                </div>
-                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
-                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
-                                </div>
-                                <div id="group-update-cgpa" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:0.5rem;">
-                                    <label style="font-size:0.85rem; font-weight:700; color:#334155;">Current CGPA *</label>
-                                    <input type="number" step="0.01" min="0" max="10" id="input-update-cgpa" value="${student.current_cgpa || ""}" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit;">
-                                    <span style="font-size:0.72rem; color:var(--text-muted);">Enter CGPA between 0 and 10</span>
-                                </div>
-                            </div>
+                             <div id="student-content-updateprofile" style="display: none;">
+                        <div id="student-update-pending-alert"></div>
+                        <div class="card" style="padding:1.5rem; border-radius:1rem; border:1px solid var(--border); background:#ffffff;">
+                            <h3 style="margin-top:0; color:#003366; font-size:1.2rem; font-weight:700; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1.5rem;">Personal & Academic Details Update</h3>
                             
-                            <!-- Update SGPA card -->
-                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
-                                    <input type="checkbox" id="chk-update-sgpa" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('sgpa', this.checked)">
-                                    <label for="chk-update-sgpa" style="margin:0; cursor:pointer;">Update Semester-wise SGPA</label>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem;">
+                                <!-- Personal Details Group -->
+                                <div style="display:flex; flex-direction:column; gap:1rem; grid-column:1 / -1;">
+                                    <h4 style="margin:0; color:var(--primary); font-size:0.95rem; font-weight:600;">Personal Information</h4>
                                 </div>
-                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
-                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Gender</label>
+                                    <select id="stu-upd-gender" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                        <option value="">-- Select Gender --</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
-                                <div id="group-update-sgpa" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:0.75rem;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <span style="font-size:0.82rem; font-weight:700; color:#334155;">SGPA Values (max 8)</span>
-                                        <button class="btn-secondary" onclick="window.addStudentSgpaField()" style="padding:0.35rem 0.75rem; font-size:0.75rem; font-weight:700; border-radius:0.4rem;">+ Add Semester</button>
-                                    </div>
-                                    <div id="sgpa-fields-container" style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
-                                        <!-- Will populate dynamically -->
-                                    </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Caste</label>
+                                    <input type="text" id="stu-upd-caste" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. General / OBC / SC / ST">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Email Address</label>
+                                    <input type="email" id="stu-upd-email" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Phone Number</label>
+                                    <input type="tel" id="stu-upd-phone" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Father's Name</label>
+                                    <input type="text" id="stu-upd-father-name" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Mother's Name</label>
+                                    <input type="text" id="stu-upd-mother-name" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Father's Phone Number</label>
+                                    <input type="tel" id="stu-upd-father-phone" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <!-- Academic Group -->
+                                <div style="display:flex; flex-direction:column; gap:1rem; grid-column:1 / -1; margin-top:1rem; border-top:1px solid var(--border); padding-top:1.5rem;">
+                                    <h4 style="margin:0; color:var(--primary); font-size:0.95rem; font-weight:600;">Academic Information</h4>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">10th Board</label>
+                                    <input type="text" id="stu-upd-10-board" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. CBSE / ICSE">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">10th Percentage (%)</label>
+                                    <input type="number" step="0.01" id="stu-upd-10-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">12th Board</label>
+                                    <input type="text" id="stu-upd-12-board" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;" placeholder="e.g. CBSE / State Board">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">12th Percentage (%)</label>
+                                    <input type="number" step="0.01" id="stu-upd-12-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Diploma Percentage (%)</label>
+                                    <input type="number" step="0.01" id="stu-upd-diploma-pct" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:0.8rem; font-weight:700; color:#334155;">Current CGPA</label>
+                                    <input type="number" step="0.01" id="stu-upd-cgpa" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
                                 </div>
                             </div>
 
-                            <!-- Update Extra / Achievements card -->
-                            <div class="card" style="display:flex; flex-direction:column; gap:1rem; padding:1.5rem; border-radius:1rem; grid-column: 1 / -1;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700; font-size:1.1rem; color:#003366;">
-                                    <input type="checkbox" id="chk-update-achievements" style="width:1.25rem; height:1.25rem; cursor:pointer;" onchange="window.toggleStudentUpdateField('achievements', this.checked)">
-                                    <label for="chk-update-achievements" style="margin:0; cursor:pointer;">Update Achievements</label>
-                                </div>
-                                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; color:#d97706; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; max-width: max-content;">
-                                    <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Requires Coordinator Verification
-                                </div>
-                                <div id="group-update-achievements" style="opacity:0.5; pointer-events:none; display:flex; flex-direction:column; gap:1rem;">
-                                    <div>
-                                        <label style="font-weight:700; margin-bottom:0.5rem; display:block; font-size:0.85rem;">My Pending Achievements List</label>
-                                        <div id="student-achievements-temp-list" style="max-height:160px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;">
-                                            <span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements added yet.</span>
-                                        </div>
-                                    </div>
-                                    <div style="border-top:1px solid var(--border); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.75rem;">
-                                        <label style="font-weight:700; color:#10b981; font-size:0.85rem;">🏆 Add New Achievement</label>
-                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
-                                            <div class="form-group" style="margin-bottom:0;">
-                                                <label style="font-size:0.78rem;">Achievement Type</label>
-                                                <select id="student-achievement-type-select" style="padding:0.5rem; width:100%; border:1px solid var(--border); border-radius:0.5rem; background:var(--bg-dark); color:var(--text-main);" onchange="window.updateStudentAchievementPlaceholder(this.value)">
-                                                    <option value="">-- Select Type --</option>
-                                                    <option value="Internship">Internship</option>
-                                                    <option value="Hackathon">Hackathon</option>
-                                                    <option value="Sports">Sports</option>
-                                                    <option value="Certifications">Certifications</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group" style="margin-bottom:0;">
-                                                <label style="font-size:0.78rem;" id="student-achievement-name-label">Details / Name</label>
-                                                <input type="text" id="student-achievement-name-input" placeholder="e.g. Google Web Development Certification, Basketball Runner Up, etc." style="padding:0.6rem; border:1px solid var(--border); border-radius:0.5rem; width:100%; background:var(--bg-dark); color:var(--text-main);">
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn-primary" onclick="window.addStudentTempAchievement()" style="background:#10b981; border:none; padding:0.4rem 1rem; align-self:flex-end; font-size:0.8rem; font-weight:700; box-shadow:none;">+ Add to List</button>
-                                    </div>
-                                </div>
+                            <div style="margin-top:2rem; display:flex; justify-content:center;">
+                                <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
+                                    <i data-lucide="save" style="width:18px; height:18px;"></i> Submit Update Request
+                                </button>
                             </div>
                         </div>
-
-                        <!-- Update Button -->
-                        <div style="margin-top:2rem; display:flex; justify-content:center;">
-                            <button class="btn-primary" id="btn-update-selected-fields" onclick="window.submitStudentProfileUpdates()" style="background:#003366; border-color:#003366; padding:0.8rem 2.5rem; border-radius:0.5rem; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
-                                <i data-lucide="save" style="width:18px; height:18px;"></i> Update Selected Fields
-                            </button>
-                        </div>
+                    </div>                </div>
                     </div>
                 </div>
             </div>
@@ -1414,226 +1423,171 @@ window.switchStudentTab = (tab) => {
   }
 };
 
-window.initStudentUpdateProfileTab = () => {
+window.initStudentUpdateProfileTab = async () => {
   const student = currentState.studentData;
   if (!student) return;
 
-  // Reset checkboxes
-  document.getElementById("chk-update-cgpa").checked = false;
-  document.getElementById("chk-update-sgpa").checked = false;
-  document.getElementById("chk-update-achievements").checked = false;
+  try {
+    const { data: pending, error } = await supabaseClient
+      .from("student_updates")
+      .select("*")
+      .eq("student_id", student.id)
+      .eq("status", "Pending")
+      .eq("field_name", "profile_update")
+      .maybeSingle();
 
-  window.toggleStudentUpdateField("cgpa", false);
-  window.toggleStudentUpdateField("sgpa", false);
-  window.toggleStudentUpdateField("achievements", false);
+    const currentValues = {
+      gender: student.gender || "",
+      caste: student.caste || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      father_name: student.father_name || "",
+      mother_name: student.mother_name || "",
+      father_phone: student.father_phone || "",
+      class_10_board: student.class_10_board || "",
+      class_10_percent: student.class_10_percent || "",
+      class_12_board: student.class_12_board || "",
+      class_12_percent: student.class_12_percent || "",
+      diploma_percent: student.diploma_percent || "",
+      current_cgpa: student.current_cgpa || ""
+    };
 
-  // Set CGPA input
-  document.getElementById("input-update-cgpa").value = student.current_cgpa || "";
+    let valuesToUse = { ...currentValues };
+    let hasPending = false;
+    let pendingDateStr = "";
 
-  // Render SGPA fields
-  window._studentSgpaValues = Array.isArray(student.extra_attendance?.sgpa)
-    ? [...student.extra_attendance.sgpa]
-    : [0, 0, 0, 0];
-  window.renderStudentSgpaFields();
+    if (pending) {
+      hasPending = true;
+      valuesToUse = { ...currentValues, ...(pending.new_value || {}) };
+      pendingDateStr = new Date(pending.requested_at).toLocaleDateString("en-US", {
+        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+      });
+    }
 
-  // Render Achievements
-  window._studentTempAchievements = Array.isArray(student.achievements)
-    ? [...student.achievements]
-    : [];
-  window.renderStudentAchievementsList();
-};
-
-window.toggleStudentUpdateField = (field, checked) => {
-  const group = document.getElementById(`group-update-${field}`);
-  if (group) {
-    group.style.opacity = checked ? "1" : "0.5";
-    group.style.pointerEvents = checked ? "auto" : "none";
-  }
-};
-
-window.renderStudentSgpaFields = () => {
-  const container = document.getElementById("sgpa-fields-container");
-  if (!container) return;
-
-  container.innerHTML = window._studentSgpaValues
-    .map((val, idx) => `
-      <div style="display:flex; flex-direction:column; gap:0.25rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Sem ${idx + 1}</span>
-          ${window._studentSgpaValues.length > 1 ? `
-            <button onclick="window.removeStudentSgpaField(${idx})" style="background:none; border:none; color:var(--error); font-size:0.8rem; cursor:pointer;">&times;</button>
-          ` : ""}
-        </div>
-        <input type="number" step="0.01" min="0" max="10" class="student-sgpa-input" data-index="${idx}" value="${val}" style="padding:0.5rem; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-family:inherit;">
-      </div>
-    `)
-    .join("");
-};
-
-window.addStudentSgpaField = () => {
-  if (window._studentSgpaValues.length >= 8) {
-    showToast("Maximum of 8 semesters allowed", "error");
-    return;
-  }
-  window._studentSgpaValues.push(0);
-  window.renderStudentSgpaFields();
-};
-
-window.removeStudentSgpaField = (idx) => {
-  window._studentSgpaValues.splice(idx, 1);
-  window.renderStudentSgpaFields();
-};
-
-window.updateStudentAchievementPlaceholder = (val) => {
-  const label = document.getElementById("student-achievement-name-label");
-  const input = document.getElementById("student-achievement-name-input");
-  if (!label || !input) return;
-
-  if (val === "Sports") {
-    label.textContent = "Sport Name";
-    input.placeholder = "e.g. Basketball National Tournament, Cricket Captain";
-  } else if (val === "Internship") {
-    label.textContent = "Internship Details";
-    input.placeholder = "e.g. Amazon Software Engineer Intern (3 Months)";
-  } else if (val === "Hackathon") {
-    label.textContent = "Hackathon Details";
-    input.placeholder = "e.g. Smart India Hackathon 2026 Winner";
-  } else if (val === "Certifications") {
-    label.textContent = "Certification Name";
-    input.placeholder = "e.g. AWS Certified Solutions Architect";
-  } else {
-    label.textContent = "Details / Name";
-    input.placeholder = "e.g. Details of achievement...";
-  }
-};
-
-window.renderStudentAchievementsList = () => {
-  const container = document.getElementById("student-achievements-temp-list");
-  if (!container) return;
-
-  if (window._studentTempAchievements.length === 0) {
-    container.innerHTML = `<span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements added yet.</span>`;
-    return;
-  }
-
-  container.innerHTML = window._studentTempAchievements
-    .map((a, idx) => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.5rem 0.75rem; border-radius:0.5rem; border:1px solid var(--border);">
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${a.type}</span>
-              <span style="font-weight:600; font-size:0.83rem;">${a.name}</span>
+    const alertBox = document.getElementById("student-update-pending-alert");
+    if (alertBox) {
+      if (hasPending) {
+        alertBox.innerHTML = `
+          <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:0.5rem; padding:0.75rem 1rem; color:#d97706; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; width:100%;">
+            <i data-lucide="alert-triangle" style="width:16px; height:16px;"></i>
+            <span>You have a pending update request submitted on <strong>${pendingDateStr}</strong>. Modifying and saving will update your pending request.</span>
           </div>
-          <button onclick="window.removeStudentTempAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1.1rem; cursor:pointer; padding:0.2rem; display:flex; align-items:center; justify-content:center;">&times;</button>
-      </div>
-    `)
-    .join("");
-};
+        `;
+      } else {
+        alertBox.innerHTML = "";
+      }
+      lucide.createIcons();
+    }
 
-window.addStudentTempAchievement = () => {
-  const typeSelect = document.getElementById("student-achievement-type-select");
-  const nameInput = document.getElementById("student-achievement-name-input");
-  if (!typeSelect || !nameInput) return;
+    document.getElementById("stu-upd-gender").value = valuesToUse.gender;
+    document.getElementById("stu-upd-caste").value = valuesToUse.caste;
+    document.getElementById("stu-upd-email").value = valuesToUse.email;
+    document.getElementById("stu-upd-phone").value = valuesToUse.phone;
+    document.getElementById("stu-upd-father-name").value = valuesToUse.father_name;
+    document.getElementById("stu-upd-mother-name").value = valuesToUse.mother_name;
+    document.getElementById("stu-upd-father-phone").value = valuesToUse.father_phone;
+    document.getElementById("stu-upd-10-board").value = valuesToUse.class_10_board;
+    document.getElementById("stu-upd-10-pct").value = valuesToUse.class_10_percent;
+    document.getElementById("stu-upd-12-board").value = valuesToUse.class_12_board;
+    document.getElementById("stu-upd-12-pct").value = valuesToUse.class_12_percent;
+    document.getElementById("stu-upd-diploma-pct").value = valuesToUse.diploma_percent;
+    document.getElementById("stu-upd-cgpa").value = valuesToUse.current_cgpa;
 
-  const type = typeSelect.value;
-  const name = nameInput.value.trim();
-
-  if (!type) {
-    showToast("Please select an achievement type", "error");
-    return;
+  } catch (err) {
+    showToast("Failed to load profile update state: " + err.message, "error");
   }
-  if (!name) {
-    showToast("Please enter achievement details", "error");
-    return;
-  }
-
-  window._studentTempAchievements.push({ type, name });
-  nameInput.value = "";
-  window.renderStudentAchievementsList();
-};
-
-window.removeStudentTempAchievement = (idx) => {
-  window._studentTempAchievements.splice(idx, 1);
-  window.renderStudentAchievementsList();
 };
 
 window.submitStudentProfileUpdates = async () => {
   const student = currentState.studentData;
   if (!student) return;
 
-  const chkCgpa = document.getElementById("chk-update-cgpa").checked;
-  const chkSgpa = document.getElementById("chk-update-sgpa").checked;
-  const chkAchievements = document.getElementById("chk-update-achievements").checked;
-
-  if (!chkCgpa && !chkSgpa && !chkAchievements) {
-    showToast("Please check at least one field to update", "error");
-    return;
-  }
-
   const btn = document.getElementById("btn-update-selected-fields");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Submitting Requests...";
+    btn.textContent = "Submitting Request...";
   }
 
   try {
-    const requests = [];
+    const gender = document.getElementById("stu-upd-gender").value;
+    const caste = document.getElementById("stu-upd-caste").value.trim() || null;
+    const email = document.getElementById("stu-upd-email").value.trim() || null;
+    const phone = document.getElementById("stu-upd-phone").value.trim() || null;
+    const father_name = document.getElementById("stu-upd-father-name").value.trim() || null;
+    const mother_name = document.getElementById("stu-upd-mother-name").value.trim() || null;
+    const father_phone = document.getElementById("stu-upd-father-phone").value.trim() || null;
+    const class_10_board = document.getElementById("stu-upd-10-board").value.trim() || null;
+    const class_10_percent = parseFloat(document.getElementById("stu-upd-10-pct").value) || null;
+    const class_12_board = document.getElementById("stu-upd-12-board").value.trim() || null;
+    const class_12_percent = parseFloat(document.getElementById("stu-upd-12-pct").value) || null;
+    const diploma_percent = parseFloat(document.getElementById("stu-upd-diploma-pct").value) || null;
+    const current_cgpa = parseFloat(document.getElementById("stu-upd-cgpa").value) || null;
 
-    if (chkCgpa) {
-      const newCgpaVal = parseFloat(document.getElementById("input-update-cgpa").value);
-      if (isNaN(newCgpaVal) || newCgpaVal < 0 || newCgpaVal > 10) {
-        throw new Error("CGPA must be a valid number between 0 and 10");
-      }
-      requests.push({
-        student_id: student.id,
-        field_name: "CGPA",
-        old_value: student.current_cgpa || null,
-        new_value: newCgpaVal,
-        status: "Pending"
-      });
+    if (current_cgpa !== null && (current_cgpa < 0 || current_cgpa > 10)) {
+      throw new Error("CGPA must be between 0 and 10");
     }
 
-    if (chkSgpa) {
-      const inputs = document.querySelectorAll(".student-sgpa-input");
-      const values = Array.from(inputs).map(inp => {
-        const v = parseFloat(inp.value);
-        if (isNaN(v) || v < 0 || v > 10) {
-          throw new Error("All SGPA values must be valid numbers between 0 and 10");
-        }
-        return v;
-      });
-      requests.push({
-        student_id: student.id,
-        field_name: "SGPA",
-        old_value: student.extra_attendance?.sgpa || null,
-        new_value: values,
-        status: "Pending"
-      });
-    }
+    const newVal = {
+      gender, caste, email, phone, father_name, mother_name, father_phone,
+      class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa
+    };
 
-    if (chkAchievements) {
-      requests.push({
-        student_id: student.id,
-        field_name: "Achievements",
-        old_value: student.achievements || [],
-        new_value: window._studentTempAchievements,
-        status: "Pending"
-      });
-    }
+    const oldVal = {
+      gender: student.gender || "",
+      caste: student.caste || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      father_name: student.father_name || "",
+      mother_name: student.mother_name || "",
+      father_phone: student.father_phone || "",
+      class_10_board: student.class_10_board || "",
+      class_10_percent: student.class_10_percent || "",
+      class_12_board: student.class_12_board || "",
+      class_12_percent: student.class_12_percent || "",
+      diploma_percent: student.diploma_percent || "",
+      current_cgpa: student.current_cgpa || ""
+    };
 
-    const { error } = await supabaseClient
+    const { data: pending } = await supabaseClient
       .from("student_updates")
-      .insert(requests);
+      .select("id")
+      .eq("student_id", student.id)
+      .eq("status", "Pending")
+      .eq("field_name", "profile_update")
+      .maybeSingle();
 
-    if (error) throw error;
+    if (pending) {
+      const { error } = await supabaseClient
+        .from("student_updates")
+        .update({
+          new_value: newVal,
+          old_value: oldVal,
+          requested_at: new Date().toISOString()
+        })
+        .eq("id", pending.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabaseClient
+        .from("student_updates")
+        .insert({
+          student_id: student.id,
+          field_name: "profile_update",
+          old_value: oldVal,
+          new_value: newVal,
+          status: "Pending",
+          requested_at: new Date().toISOString()
+        });
+      if (error) throw error;
+    }
 
-    showToast("Update requests submitted for coordinator approval!");
-    window.initStudentUpdateProfileTab();
+    showToast("Profile update request submitted for coordinator verification!");
+    await window.initStudentUpdateProfileTab();
   } catch (err) {
     showToast(err.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = `<i data-lucide="save" style="width:18px; height:18px;"></i> Update Selected Fields`;
+      btn.innerHTML = `<i data-lucide="save" style="width:18px; height:18px;"></i> Submit Update Request`;
       lucide.createIcons();
     }
   }
@@ -8648,7 +8602,7 @@ async function renderCoordStudentRequests(container) {
                         <tr style="background:#f8fafc; border-bottom:2px solid var(--border); color:var(--text-muted); font-weight:700;">
                             <th style="padding:1rem;">Student Details</th>
                             <th style="padding:1rem;">Field</th>
-                            <th style="padding:1rem;">Proposed Change</th>
+                            <th style="padding:1rem;">Proposed Changes (Only Modified Shown)</th>
                             <th style="padding:1rem;">Date Requested</th>
                             ${activeTab === "history" ? `<th style="padding:1rem;">Status / Reviewer</th>` : `<th style="padding:1rem; text-align:right;">Actions</th>`}
                         </tr>
@@ -8669,44 +8623,59 @@ async function renderCoordStudentRequests(container) {
                             });
 
                             let changeHtml = "";
-                            if (field === "CGPA") {
-                                const oldVal = req.old_value !== null ? parseFloat(req.old_value).toFixed(2) : "None";
-                                const newVal = req.new_value !== null ? parseFloat(req.new_value).toFixed(2) : "None";
-                                changeHtml = `
-                                    <div style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">
-                                        <span style="color:var(--text-muted); text-decoration:line-through;">${oldVal}</span>
-                                        <i data-lucide="arrow-right" style="width:14px; height:14px; color:var(--text-muted);"></i>
-                                        <span style="color:#0f766e; background:#ccfbf1; padding:0.15rem 0.4rem; border-radius:0.25rem;">${newVal}</span>
-                                    </div>
-                                `;
-                            } else if (field === "SGPA") {
-                                const oldVal = Array.isArray(req.old_value) ? req.old_value : [];
-                                const newVal = Array.isArray(req.new_value) ? req.new_value : [];
-                                changeHtml = `
-                                    <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem;">
-                                        <div style="display:flex; align-items:center; gap:0.25rem; color:var(--text-muted);"><span style="font-weight:700;">Old:</span> [${oldVal.join(", ") || "None"}]</div>
-                                        <div style="display:flex; align-items:center; gap:0.25rem; color:#0f766e;"><span style="font-weight:700;">New:</span> <span style="background:#ccfbf1; padding:0.1rem 0.35rem; border-radius:0.25rem; font-weight:600;">[${newVal.join(", ")}]</span></div>
-                                    </div>
-                                `;
-                            } else if (field === "Achievements") {
-                                const oldVal = Array.isArray(req.old_value) ? req.old_value : [];
-                                const newVal = Array.isArray(req.new_value) ? req.new_value : [];
+                            if (field === "profile_update") {
+                                const oldVal = req.old_value || {};
+                                const newVal = req.new_value || {};
+                                
+                                const changedFields = [];
+                                const fieldLabels = {
+                                  gender: "Gender",
+                                  caste: "Caste",
+                                  email: "Email",
+                                  phone: "Phone",
+                                  father_name: "Father's Name",
+                                  mother_name: "Mother's Name",
+                                  father_phone: "Father's Phone",
+                                  class_10_board: "10th Board",
+                                  class_10_percent: "10th %",
+                                  class_12_board: "12th Board",
+                                  class_12_percent: "12th %",
+                                  diploma_percent: "Diploma %",
+                                  current_cgpa: "CGPA"
+                                };
 
-                                // Find newly added ones
-                                const oldKeys = oldVal.map(x => `${x.type || ""}:${x.name || ""}`);
-                                const changesList = newVal.map(n => {
-                                    const key = `${n.type || ""}:${n.name || ""}`;
-                                    const isNew = !oldKeys.includes(key);
-                                    return `
-                                        <span style="display:inline-flex; align-items:center; gap:0.25rem; background:${isNew ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-dark)'}; color:${isNew ? '#10b981' : 'var(--text-muted)'}; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.75rem; border:1px solid ${isNew ? '#10b981' : 'var(--border)'};">
-                                            <span style="font-weight:700; font-size:0.6rem; text-transform:uppercase;">${n.type}</span>
-                                            <span>${n.name}</span>
-                                            ${isNew ? '<span style="font-size:0.58rem; background:#10b981; color:#ffffff; padding:0 0.2rem; border-radius:0.15rem; font-weight:800;">NEW</span>' : ''}
-                                        </span>
-                                    `;
-                                }).join(" ");
+                                Object.keys(fieldLabels).forEach(k => {
+                                  const o = oldVal[k] !== null && oldVal[k] !== undefined ? String(oldVal[k]).trim() : "";
+                                  const n = newVal[k] !== null && newVal[k] !== undefined ? String(newVal[k]).trim() : "";
+                                  if (o !== n) {
+                                    changedFields.push({
+                                      label: fieldLabels[k],
+                                      old: oldVal[k] !== null && oldVal[k] !== undefined && oldVal[k] !== "" ? oldVal[k] : "None",
+                                      new: newVal[k] !== null && newVal[k] !== undefined && newVal[k] !== "" ? newVal[k] : "None"
+                                    });
+                                  }
+                                });
 
-                                changeHtml = `<div style="display:flex; flex-wrap:wrap; gap:0.35rem; max-width:400px;">${changesList || '<span style="color:var(--text-muted);">Empty List</span>'}</div>`;
+                                if (changedFields.length === 0) {
+                                  changeHtml = `<span style="color:var(--text-muted); font-style:italic;">No changes detected</span>`;
+                                } else {
+                                  changeHtml = `
+                                    <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.8rem; max-width:450px;">
+                                      ${changedFields.map(cf => `
+                                        <div style="display:grid; grid-template-columns:110px 1fr; gap:0.5rem; align-items:center; border-bottom:1px dashed #e2e8f0; padding-bottom:0.25rem;">
+                                          <span style="font-weight:700; color:#475569;">${cf.label}:</span>
+                                          <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                                            <span style="color:#ef4444; text-decoration:line-through;">${cf.old}</span>
+                                            <i data-lucide="arrow-right" style="width:12px; height:12px; color:var(--text-muted);"></i>
+                                            <span style="color:#0f766e; background:#ccfbf1; padding:0.15rem 0.35rem; border-radius:0.25rem; font-weight:600;">${cf.new}</span>
+                                          </div>
+                                        </div>
+                                      `).join("")}
+                                    </div>
+                                  `;
+                                }
+                            } else {
+                                changeHtml = `<pre style="margin:0; font-family:inherit; font-size:0.8rem;">${JSON.stringify(req.new_value)}</pre>`;
                             }
 
                             let actionHtml = "";
@@ -8717,7 +8686,7 @@ async function renderCoordStudentRequests(container) {
                                             <i data-lucide="check" style="width:14px; height:14px;"></i> Approve
                                         </button>
                                         <button onclick="window.editAndApproveStudentRequest('${req.id}')" style="background:#003366; border:none; color:#ffffff; font-weight:700; padding:0.4rem 0.75rem; border-radius:0.4rem; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:0.25rem;">
-                                            <i data-lucide="edit" style="width:14px; height:14px;"></i> Edit
+                                            <i data-lucide="edit" style="width:14px; height:14px;"></i> View & Edit
                                         </button>
                                         <button onclick="window.rejectStudentRequest('${req.id}')" style="background:#ef4444; border:none; color:#ffffff; font-weight:700; padding:0.4rem 0.75rem; border-radius:0.4rem; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:0.25rem;">
                                             <i data-lucide="x" style="width:14px; height:14px;"></i> Reject
@@ -8744,7 +8713,7 @@ async function renderCoordStudentRequests(container) {
                                         <div style="color:var(--text-main);">${name}</div>
                                         <div style="font-size:0.75rem; color:var(--text-muted);">${rollNo}</div>
                                     </td>
-                                    <td style="padding:1rem; font-weight:700; color:#475569;">${field}</td>
+                                    <td style="padding:1rem; font-weight:700; color:#475569;">Profile Update</td>
                                     <td style="padding:1rem;">${changeHtml}</td>
                                     <td style="padding:1rem; color:var(--text-muted); font-size:0.8rem;">${reqDate}</td>
                                     <td style="padding:1rem; ${activeTab === "pending" ? "text-align:right;" : ""}">${actionHtml}</td>
@@ -8768,7 +8737,6 @@ window.switchCoordRequestsTab = (tab) => {
 
 window.approveStudentRequest = async (requestId) => {
   try {
-    // 1. Fetch the request
     const { data: req, error: fetchErr } = await supabaseClient
       .from("student_updates")
       .select("*")
@@ -8781,39 +8749,30 @@ window.approveStudentRequest = async (requestId) => {
 
     const { student_id, field_name, new_value } = req;
 
-    // 2. Apply updates to the student table
-    if (field_name === "CGPA") {
-      const { error: updErr } = await supabaseClient
-        .from("students")
-        .update({ current_cgpa: new_value })
-        .eq("id", student_id);
-      if (updErr) throw updErr;
-    } else if (field_name === "SGPA") {
-      // Fetch student extra_attendance first
-      const { data: student, error: stdErr } = await supabaseClient
-        .from("students")
-        .select("extra_attendance")
-        .eq("id", student_id)
-        .single();
-      if (stdErr) throw stdErr;
-
-      const extra = student.extra_attendance || {};
-      extra.sgpa = new_value;
+    if (field_name === "profile_update") {
+      const updates = {
+        gender: new_value.gender || null,
+        caste: new_value.caste || null,
+        email: new_value.email || null,
+        phone: new_value.phone || null,
+        father_name: new_value.father_name || null,
+        mother_name: new_value.mother_name || null,
+        father_phone: new_value.father_phone || null,
+        class_10_board: new_value.class_10_board || null,
+        class_10_percent: parseFloat(new_value.class_10_percent) || null,
+        class_12_board: new_value.class_12_board || null,
+        class_12_percent: parseFloat(new_value.class_12_percent) || null,
+        diploma_percent: parseFloat(new_value.diploma_percent) || null,
+        current_cgpa: parseFloat(new_value.current_cgpa) || null
+      };
 
       const { error: updErr } = await supabaseClient
         .from("students")
-        .update({ extra_attendance: extra })
-        .eq("id", student_id);
-      if (updErr) throw updErr;
-    } else if (field_name === "Achievements") {
-      const { error: updErr } = await supabaseClient
-        .from("students")
-        .update({ achievements: new_value })
+        .update(updates)
         .eq("id", student_id);
       if (updErr) throw updErr;
     }
 
-    // 3. Update the request status in student_updates
     const { error: reqErr } = await supabaseClient
       .from("student_updates")
       .update({
@@ -8892,133 +8851,45 @@ window.editAndApproveStudentRequest = async (requestId) => {
 
     const { field_name, new_value } = req;
 
-    let content = `<div id="coord-edit-modal-body" style="display:flex; flex-direction:column; gap:1rem;"></div>`;
+    if (field_name === "profile_update") {
+      window._coordEditProfile = { ...(new_value || {}) };
+      const content = `<div id="coord-edit-modal-body" style="display:flex; flex-direction:column; gap:1rem;"></div>`;
 
-    if (field_name === "CGPA") {
       showModal(
-        "Edit and Approve CGPA",
+        "Edit and Approve Profile Details",
         content,
         async () => {
-          const val = parseFloat(document.getElementById("coord-edit-cgpa-val").value);
-          if (isNaN(val) || val < 0 || val > 10) {
-            showToast("CGPA must be a valid number between 0 and 10", "error");
+          const gender = document.getElementById("coord-ep-gender").value;
+          const caste = document.getElementById("coord-ep-caste").value.trim() || null;
+          const email = document.getElementById("coord-ep-email").value.trim() || null;
+          const phone = document.getElementById("coord-ep-phone").value.trim() || null;
+          const father_name = document.getElementById("coord-ep-father-name").value.trim() || null;
+          const mother_name = document.getElementById("coord-ep-mother-name").value.trim() || null;
+          const father_phone = document.getElementById("coord-ep-father-phone").value.trim() || null;
+          const class_10_board = document.getElementById("coord-ep-10-board").value.trim() || null;
+          const class_10_percent = parseFloat(document.getElementById("coord-ep-10-pct").value) || null;
+          const class_12_board = document.getElementById("coord-ep-12-board").value.trim() || null;
+          const class_12_percent = parseFloat(document.getElementById("coord-ep-12-pct").value) || null;
+          const diploma_percent = parseFloat(document.getElementById("coord-ep-diploma-pct").value) || null;
+          const current_cgpa = parseFloat(document.getElementById("coord-ep-cgpa").value) || null;
+
+          if (current_cgpa !== null && (current_cgpa < 0 || current_cgpa > 10)) {
+            showToast("CGPA must be between 0 and 10", "error");
             return;
           }
 
+          const edited = {
+            gender, caste, email, phone, father_name, mother_name, father_phone,
+            class_10_board, class_10_percent, class_12_board, class_12_percent, diploma_percent, current_cgpa
+          };
+
           try {
-            // Update request new_value
             const { error: reqErr } = await supabaseClient
               .from("student_updates")
-              .update({ new_value: val })
+              .update({ new_value: edited })
               .eq("id", requestId);
             if (reqErr) throw reqErr;
 
-            // Approve
-            await window.approveStudentRequest(requestId);
-            closeModal();
-          } catch (err) {
-            showToast(err.message, "error");
-          }
-        },
-        { confirmText: "Approve with Changes", cancelText: "Cancel" }
-      );
-
-      // Populate CGPA body
-      const body = document.getElementById("coord-edit-modal-body");
-      if (body) {
-        body.innerHTML = `
-          <label style="font-weight:700; font-size:0.9rem; color:var(--text-main);">CGPA Value</label>
-          <input type="number" step="0.01" min="0" max="10" id="coord-edit-cgpa-val" value="${new_value}" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit;">
-        `;
-      }
-    } else if (field_name === "SGPA") {
-      window._coordEditSgpa = Array.isArray(new_value) ? [...new_value] : [];
-
-      showModal(
-        "Edit and Approve SGPA",
-        content,
-        async () => {
-          const inputs = document.querySelectorAll(".coord-edit-sgpa-input");
-          const values = Array.from(inputs).map(inp => {
-            const v = parseFloat(inp.value);
-            if (isNaN(v) || v < 0 || v > 10) {
-              throw new Error("All SGPA values must be between 0 and 10");
-            }
-            return v;
-          });
-
-          try {
-            // Update request new_value
-            const { error: reqErr } = await supabaseClient
-              .from("student_updates")
-              .update({ new_value: values })
-              .eq("id", requestId);
-            if (reqErr) throw reqErr;
-
-            // Approve
-            await window.approveStudentRequest(requestId);
-            closeModal();
-          } catch (err) {
-            showToast(err.message, "error");
-          }
-        },
-        { confirmText: "Approve with Changes", cancelText: "Cancel" }
-      );
-
-      window.renderCoordEditSgpaFields = () => {
-        const body = document.getElementById("coord-edit-modal-body");
-        if (!body) return;
-
-        body.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <label style="font-weight:700; font-size:0.9rem; color:var(--text-main);">SGPA Semesters</label>
-            <button onclick="window.addCoordEditSgpaField()" style="padding:0.35rem 0.75rem; font-size:0.75rem; font-weight:700; border-radius:0.4rem; background:var(--primary); color:white; border:none; cursor:pointer;">+ Add Semester</button>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; max-height:250px; overflow-y:auto; padding:0.25rem;">
-            ${window._coordEditSgpa.map((v, idx) => `
-              <div style="display:flex; flex-direction:column; gap:0.25rem; border:1px solid var(--border); padding:0.5rem; border-radius:0.4rem; background:rgba(0,0,0,0.01);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Sem ${idx + 1}</span>
-                  <button onclick="window.removeCoordEditSgpaField(${idx})" style="background:none; border:none; color:var(--error); font-size:0.95rem; cursor:pointer; font-weight:700;">&times;</button>
-                </div>
-                <input type="number" step="0.01" min="0" max="10" class="coord-edit-sgpa-input" value="${v}" style="padding:0.4rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.3rem; color:var(--text-main); font-family:inherit;">
-              </div>
-            `).join("")}
-          </div>
-        `;
-      };
-
-      window.addCoordEditSgpaField = () => {
-        if (window._coordEditSgpa.length >= 8) {
-          showToast("Maximum of 8 semesters allowed", "error");
-          return;
-        }
-        window._coordEditSgpa.push(0);
-        window.renderCoordEditSgpaFields();
-      };
-
-      window.removeCoordEditSgpaField = (idx) => {
-        window._coordEditSgpa.splice(idx, 1);
-        window.renderCoordEditSgpaFields();
-      };
-
-      window.renderCoordEditSgpaFields();
-    } else if (field_name === "Achievements") {
-      window._coordEditAchievements = Array.isArray(new_value) ? [...new_value] : [];
-
-      showModal(
-        "Edit and Approve Achievements",
-        content,
-        async () => {
-          try {
-            // Update request new_value
-            const { error: reqErr } = await supabaseClient
-              .from("student_updates")
-              .update({ new_value: window._coordEditAchievements })
-              .eq("id", requestId);
-            if (reqErr) throw reqErr;
-
-            // Approve
             await window.approveStudentRequest(requestId);
             closeModal();
           } catch (err) {
@@ -9028,75 +8899,86 @@ window.editAndApproveStudentRequest = async (requestId) => {
         { confirmText: "Approve with Changes", cancelText: "Cancel", isWide: true }
       );
 
-      window.renderCoordEditAchievementsList = () => {
-        const body = document.getElementById("coord-edit-modal-body");
-        if (!body) return;
-
+      const body = document.getElementById("coord-edit-modal-body");
+      if (body) {
         body.innerHTML = `
-          <div style="display:flex; flex-direction:column; gap:1rem;">
-            <div>
-              <label style="font-weight:700; margin-bottom:0.5rem; display:block; font-size:0.9rem;">Achievements List</label>
-              <div style="max-height:180px; overflow-y:auto; padding:0.5rem; border:1px solid var(--border); border-radius:0.5rem; background:rgba(0,0,0,0.01); display:flex; flex-direction:column; gap:0.4rem;">
-                ${window._coordEditAchievements.length === 0 ? `
-                  <span style="color:var(--text-muted); font-style:italic; font-size:0.82rem;">No achievements.</span>
-                ` : window._coordEditAchievements.map((a, idx) => `
-                  <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:0.4rem 0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                      <span style="background:rgba(16, 185, 129, 0.12); color:#10b981; padding:0.15rem 0.45rem; border-radius:0.25rem; font-size:0.68rem; font-weight:700; text-transform:uppercase;">${a.type}</span>
-                      <span style="font-weight:600; font-size:0.82rem; color:var(--text-main);">${a.name}</span>
-                    </div>
-                    <button onclick="window.removeCoordEditAchievement(${idx})" style="background:none; border:none; color:var(--error); font-size:1rem; cursor:pointer; font-weight:700;">&times;</button>
-                  </div>
-                `).join("")}
-              </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-height:450px; overflow-y:auto; padding:0.25rem;">
+            <div style="grid-column: 1 / -1;"><h4 style="margin:0; color:var(--primary);">Personal Details</h4></div>
+            
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Gender</label>
+              <select id="coord-ep-gender" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+                <option value="" ${!window._coordEditProfile.gender ? "selected" : ""}>-- Select Gender --</option>
+                <option value="Male" ${window._coordEditProfile.gender === "Male" ? "selected" : ""}>Male</option>
+                <option value="Female" ${window._coordEditProfile.gender === "Female" ? "selected" : ""}>Female</option>
+                <option value="Other" ${window._coordEditProfile.gender === "Other" ? "selected" : ""}>Other</option>
+              </select>
             </div>
-            <div style="border-top:1px solid var(--border); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.75rem;">
-              <label style="font-weight:700; color:#10b981; font-size:0.85rem;">🏆 Add New Achievement</label>
-              <div style="display:grid; grid-template-columns: 1fr 2fr; gap:0.75rem; align-items:end;">
-                <div>
-                  <label style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:0.25rem;">Type</label>
-                  <select id="coord-ach-type-select" style="padding:0.4rem; width:100%; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
-                    <option value="Internship">Internship</option>
-                    <option value="Hackathon">Hackathon</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Certifications">Certifications</option>
-                    <option value="Others">Others</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="font-size:0.78rem; font-weight:600; display:block; margin-bottom:0.25rem;">Details / Name</label>
-                  <input type="text" id="coord-ach-name-input" placeholder="e.g. AWS Certified Solutions Architect" style="padding:0.4rem; width:100%; border:1px solid var(--border); border-radius:0.4rem; background:var(--bg-dark); color:var(--text-main); font-size:0.8rem;">
-                </div>
-              </div>
-              <button onclick="window.addCoordEditAchievement()" style="background:#10b981; color:white; border:none; padding:0.4rem; border-radius:0.4rem; font-weight:700; font-size:0.8rem; cursor:pointer;">+ Add to List</button>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Caste</label>
+              <input type="text" id="coord-ep-caste" value="${window._coordEditProfile.caste || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Email</label>
+              <input type="email" id="coord-ep-email" value="${window._coordEditProfile.email || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Phone</label>
+              <input type="tel" id="coord-ep-phone" value="${window._coordEditProfile.phone || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Father's Name</label>
+              <input type="text" id="coord-ep-father-name" value="${window._coordEditProfile.father_name || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Mother's Name</label>
+              <input type="text" id="coord-ep-mother-name" value="${window._coordEditProfile.mother_name || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Father's Phone</label>
+              <input type="tel" id="coord-ep-father-phone" value="${window._coordEditProfile.father_phone || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top:0.5rem; border-top:1px solid var(--border); padding-top:1rem;"><h4 style="margin:0; color:var(--primary);">Academic Details</h4></div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>10th Board</label>
+              <input type="text" id="coord-ep-10-board" value="${window._coordEditProfile.class_10_board || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>10th Percentage (%)</label>
+              <input type="number" step="0.01" id="coord-ep-10-pct" value="${window._coordEditProfile.class_10_percent || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>12th Board</label>
+              <input type="text" id="coord-ep-12-board" value="${window._coordEditProfile.class_12_board || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>12th Percentage (%)</label>
+              <input type="number" step="0.01" id="coord-ep-12-pct" value="${window._coordEditProfile.class_12_percent || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Diploma Percentage (%)</label>
+              <input type="number" step="0.01" id="coord-ep-diploma-pct" value="${window._coordEditProfile.diploma_percent || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Current CGPA</label>
+              <input type="number" step="0.01" id="coord-ep-cgpa" value="${window._coordEditProfile.current_cgpa || ""}" style="width:100%; padding:0.5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.4rem; color:var(--text-main);">
             </div>
           </div>
         `;
-      };
-
-      window.addCoordEditAchievement = () => {
-        const typeSelect = document.getElementById("coord-ach-type-select");
-        const nameInput = document.getElementById("coord-ach-name-input");
-        if (!typeSelect || !nameInput) return;
-
-        const type = typeSelect.value;
-        const name = nameInput.value.trim();
-
-        if (!type || !name) {
-          showToast("Please select a type and enter details", "error");
-          return;
-        }
-
-        window._coordEditAchievements.push({ type, name });
-        window.renderCoordEditAchievementsList();
-      };
-
-      window.removeCoordEditAchievement = (idx) => {
-        window._coordEditAchievements.splice(idx, 1);
-        window.renderCoordEditAchievementsList();
-      };
-
-      window.renderCoordEditAchievementsList();
+      }
     }
   } catch (err) {
     showToast(err.message, "error");
