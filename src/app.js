@@ -3111,6 +3111,27 @@ async function renderMarkAttendance(container) {
     lectureNo: "1",
     subjectId: ""
   };
+
+  const selectedClass = currentState.classes.find(
+    (c) => c.year === selManual.year && c.branch === selManual.branch && c.section === selManual.section
+  );
+  const selectedClassId = selectedClass ? selectedClass.id : null;
+
+  let markedLectureNos = [];
+  if (selectedClassId) {
+    try {
+      const { data: markedRecs } = await supabaseClient
+        .from("attendance_records")
+        .select("lecture_no")
+        .eq("date", todayDate)
+        .eq("class_id", selectedClassId);
+      if (markedRecs) {
+        markedLectureNos = [...new Set(markedRecs.map(r => parseInt(r.lecture_no, 10)).filter(Boolean))];
+      }
+    } catch (e) {
+      console.error("Error fetching marked lecture numbers:", e);
+    }
+  }
   let filteredClasses = todayClasses;
   if (selManual.year) {
     filteredClasses = filteredClasses.filter(
@@ -3205,12 +3226,12 @@ async function renderMarkAttendance(container) {
                     <div style="display:flex; align-items:center; gap:0.35rem;">
                         <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Lecture:</span>
                         <select id="header-lecture-no" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
-                            <option value="1" ${selManual.lectureNo === "1" ? "selected" : ""}>Lecture 1</option>
-                            <option value="2" ${selManual.lectureNo === "2" ? "selected" : ""}>Lecture 2</option>
-                            <option value="3" ${selManual.lectureNo === "3" ? "selected" : ""}>Lecture 3</option>
-                            <option value="4" ${selManual.lectureNo === "4" ? "selected" : ""}>Lecture 4</option>
-                            <option value="5" ${selManual.lectureNo === "5" ? "selected" : ""}>Lecture 5</option>
-                            <option value="6" ${selManual.lectureNo === "6" ? "selected" : ""}>Lecture 6</option>
+                            <option value="1" ${selManual.lectureNo === "1" ? "selected" : ""}>Lecture 1${markedLectureNos.includes(1) ? " (Marked)" : ""}</option>
+                            <option value="2" ${selManual.lectureNo === "2" ? "selected" : ""}>Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
+                            <option value="3" ${selManual.lectureNo === "3" ? "selected" : ""}>Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
+                            <option value="4" ${selManual.lectureNo === "4" ? "selected" : ""}>Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
+                            <option value="5" ${selManual.lectureNo === "5" ? "selected" : ""}>Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
+                            <option value="6" ${selManual.lectureNo === "6" ? "selected" : ""}>Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
                         </select>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.35rem;">
@@ -3317,12 +3338,12 @@ async function renderMarkAttendance(container) {
                 <div class="form-group" id="sel-lecture-no-container">
                     <label>Lecture No</label>
                     <select id="sel-lecture-no" style="width:100%;">
-                        <option value="1" selected>Lecture 1</option>
-                        <option value="2">Lecture 2</option>
-                        <option value="3">Lecture 3</option>
-                        <option value="4">Lecture 4</option>
-                        <option value="5">Lecture 5</option>
-                        <option value="6">Lecture 6</option>
+                        <option value="1" selected>Lecture 1${markedLectureNos.includes(1) ? " (Marked)" : ""}</option>
+                        <option value="2">Lecture 2${markedLectureNos.includes(2) ? " (Marked)" : ""}</option>
+                        <option value="3">Lecture 3${markedLectureNos.includes(3) ? " (Marked)" : ""}</option>
+                        <option value="4">Lecture 4${markedLectureNos.includes(4) ? " (Marked)" : ""}</option>
+                        <option value="5">Lecture 5${markedLectureNos.includes(5) ? " (Marked)" : ""}</option>
+                        <option value="6">Lecture 6${markedLectureNos.includes(6) ? " (Marked)" : ""}</option>
                     </select>
                 </div>
                 <div class="form-group" id="sel-batch-container">
