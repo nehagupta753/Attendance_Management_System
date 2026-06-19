@@ -788,13 +788,14 @@ window.renderStudentLayout = async () => {
       if (r.batch && student.batch && r.batch !== student.batch) {
         return;
       }
-      const key = `${r.date}-${r.subjects?.code || r.subject_id}-${r.batch || "All"}`;
+      const key = `${r.date}-${r.subjects?.code || r.subject_id}-${r.batch || "All"}-${r.lecture_no || 1}`;
       if (!sessionsMap[key]) {
         sessionsMap[key] = {
           date: r.date,
           subject: r.subjects,
           subject_id: r.subject_id,
           batch: r.batch,
+          lecture_no: r.lecture_no,
           teacher_ids: r.teacher_ids,
           records: [],
         };
@@ -3178,21 +3179,36 @@ async function renderMarkAttendance(container) {
   
   window._currentMarkedLectureNos = markedLectureNos;
 
-  let filteredClasses = todayClasses;
-  if (selManual.year) {
-    filteredClasses = filteredClasses.filter(
-      (t) => t.classes?.year === selManual.year,
-    );
-  }
-  if (selManual.branch) {
-    filteredClasses = filteredClasses.filter(
-      (t) => t.classes?.branch === selManual.branch,
-    );
-  }
-  if (selManual.section) {
-    filteredClasses = filteredClasses.filter(
-      (t) => String(t.classes?.section) === String(selManual.section),
-    );
+  let filteredClasses = [];
+  if (selManual.year && selManual.branch && selManual.section && selectedClassId) {
+    filteredClasses = currentState.timetable
+      .filter(
+        (t) =>
+          t.day_of_week === todayDay &&
+          String(t.class_id) === String(selectedClassId)
+      )
+      .map((t) => ({
+        ...t,
+        slot: `${formatDbTime(t.start_time)}-${formatDbTime(t.end_time)}`,
+      }))
+      .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
+  } else {
+    filteredClasses = todayClasses;
+    if (selManual.year) {
+      filteredClasses = filteredClasses.filter(
+        (t) => t.classes?.year === selManual.year,
+      );
+    }
+    if (selManual.branch) {
+      filteredClasses = filteredClasses.filter(
+        (t) => t.classes?.branch === selManual.branch,
+      );
+    }
+    if (selManual.section) {
+      filteredClasses = filteredClasses.filter(
+        (t) => String(t.classes?.section) === String(selManual.section),
+      );
+    }
   }
 
   window.onHeaderClassChange = () => {
