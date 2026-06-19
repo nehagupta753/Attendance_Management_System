@@ -7251,7 +7251,7 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
   for (const lec of allTodaySlots) {
     const { data: records } = await supabaseClient
       .from("attendance_records")
-      .select("id, status, students(name, roll_no)")
+      .select("id, status, teacher_id, teacher_ids, students(name, roll_no)")
       .eq("date", todayDate)
       .eq("class_id", lec.class_id)
       .eq("subject_id", lec.subject_id);
@@ -7262,11 +7262,13 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
     const absent = total - present;
     const pct = total > 0 ? ((present / total) * 100).toFixed(1) : null;
 
-    const lecTeachers = (lec.teacher_ids || [lec.teacher_id])
-      .filter(Boolean)
-      .map((tid) => currentState.teachers.find((t) => t.id === tid)?.name || "")
-      .filter(Boolean)
-      .join(", ");
+    const submittedTeacherIds = allRecords && allRecords[0] ? (allRecords[0].teacher_ids || [allRecords[0].teacher_id]).filter(Boolean) : [];
+    const submittedTeachers = submittedTeacherIds.length > 0
+      ? submittedTeacherIds
+          .map((tid) => currentState.teachers.find((t) => t.id === tid)?.name || "")
+          .filter(Boolean)
+          .join(", ")
+      : "";
 
     lectureStats.push({
       id: lec.id,
@@ -7278,7 +7280,7 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
       slot: lec.slot,
       classInfo: `${lec.classes?.branch || ""} ${lec.classes?.year || ""} Sec ${lec.classes?.section || ""}`,
       typeLabel: lec.is_lab ? `Lab (${lec.batch || "All"})` : "Lecture",
-      teachers: lecTeachers,
+      teachers: submittedTeachers,
       present,
       absent,
       total,
@@ -8055,10 +8057,16 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                                     <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
                                         <td style="padding: 0.75rem 0.25rem; vertical-align: middle;">
                                             <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary); margin-bottom: 0.15rem;">Lecture ${idx + 1} (${ls.typeLabel})</div>
-                                            <div style="font-weight: 600; font-size: 0.82rem; color: var(--text-main);">${ls.teachers || "Not Assigned"}</div>
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.05rem;">
-                                                <span style="font-weight: 600; color: var(--text-muted);">${ls.subjectCode} - ${ls.subjectName}</span> · ${ls.slot}
-                                            </div>
+                                            ${ls.isSubmitted ? `
+                                                <div style="font-weight: 600; font-size: 0.82rem; color: var(--text-main);">${ls.teachers || "Not Assigned"}</div>
+                                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.05rem;">
+                                                    <span style="font-weight: 600; color: var(--text-muted);">${ls.subjectCode} - ${ls.subjectName}</span> · ${ls.slot}
+                                                </div>
+                                            ` : `
+                                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.05rem;">
+                                                    Time Slot · ${ls.slot}
+                                                </div>
+                                            `}
                                         </td>
                                         <td style="padding: 0.75rem 0.25rem; vertical-align: middle;">
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
