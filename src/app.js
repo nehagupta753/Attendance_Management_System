@@ -2529,6 +2529,18 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                 <button class="mobile-menu-toggle" onclick="window.toggleSidebar()" style="display: none; background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 0.5rem; padding: 0.5rem; color: var(--text-main); cursor: pointer; align-items: center; justify-content: center; margin-right: 1rem;">
                     <i data-lucide="menu"></i>
                 </button>
+                ${
+                  currentState.role === "admin" && (currentState.departments || []).length > 0
+                    ? `
+                    <div class="header-dept-scoped" style="display: flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; display: inline-block;">Scope:</span>
+                        <select onchange="window.changeScopedDept(this.value)" style="background: var(--bg-dark); color: var(--primary); padding: 0.35rem 0.65rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; outline: none;">
+                            ${(currentState.departments || []).map((d) => `<option value="${d.name}" ${currentState.selectedDept === d.name ? "selected" : ""}>${d.name}</option>`).join("")}
+                        </select>
+                    </div>
+                `
+                    : ""
+                }
                 <div class="profile-dropdown-container" onclick="window.toggleProfileDropdown(event)" style="display: flex; align-items: center; gap: 0.75rem; user-select: none; margin-left: auto;">
                     <div style="position: relative;">
                         <img id="header-profile-pic" src="${localStorage.getItem("user_profile_pic_" + currentState.user.email) || "data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23333682%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-6.1 0-8 4-8 4h16s-1.9-4-8-4z%22/></svg>"}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #f0f2fa; background: #f0f2fa;">
@@ -4718,6 +4730,21 @@ window.switchAdminScope = () => {
   currentState.studentsFilters = null;
   currentState.classesFilters = null;
   localStorage.removeItem("admin_selected_dept");
+  renderMainLayout();
+};
+
+window.changeScopedDept = (deptName) => {
+  currentState.selectedDept = deptName;
+  currentState.deptBranches = window.getDeptBranches(deptName);
+  localStorage.setItem("admin_selected_dept", deptName);
+
+  // Reset active page filters to avoid state collision
+  currentState.timetableFilters = null;
+  currentState.subjectsFilters = null;
+  currentState.studentsFilters = null;
+  currentState.classesFilters = null;
+
+  showToast(`Switched active scope to: ${deptName}`, "info");
   renderMainLayout();
 };
 
