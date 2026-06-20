@@ -13468,6 +13468,9 @@ window.renderDepartments = (container) => {
                                 </td>
                                 <td style="padding: 0.85rem; text-align: center; font-weight: 700; color: var(--text-main);">${totalSecs}</td>
                                 <td style="padding: 0.85rem; text-align: right;">
+                                    <button onclick="window.showEditDepartmentModal('${d.id}')" class="btn-secondary" style="margin-right: 0.5rem; color: var(--primary); border-color: var(--primary); padding: 0.4rem 0.85rem; font-size: 0.78rem; border-radius: 6px; font-weight: 600;">
+                                        Edit
+                                    </button>
                                     <button onclick="window.deleteDepartment('${d.id}')" class="btn-secondary" style="color: var(--error); border-color: var(--error); padding: 0.4rem 0.85rem; font-size: 0.78rem; border-radius: 6px; font-weight: 600;">
                                         Delete
                                     </button>
@@ -13505,10 +13508,8 @@ window.showAddDepartmentModal = () => {
                 <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Branches (comma-separated)</label>
                 <input type="text" id="dept-branches" placeholder="e.g. IT, DS" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
             </div>
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Number of Sections per Branch</label>
-                <input type="number" id="dept-sections" min="1" max="10" value="1" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">This will automatically generate section classes (1st to 4th Year) in the database.</p>
+            <div id="branch-sections-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <!-- Dynamically rendered per branch -->
             </div>
             <button type="submit" class="btn-primary" style="width: 100%; padding: 0.85rem; border-radius: 6px; font-weight: 700;">Save Department</button>
         </form>
@@ -13517,13 +13518,39 @@ window.showAddDepartmentModal = () => {
     { hideConfirm: true },
   );
 
+  const branchesInput = document.getElementById("dept-branches");
+  const updateSections = () => {
+    const val = branchesInput.value;
+    const branches = val.split(",").map(b => b.trim().toUpperCase()).filter(Boolean);
+    const container = document.getElementById("branch-sections-container");
+    if (!container) return;
+    
+    let html = "";
+    if (branches.length > 0) {
+      html = `<label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; display: block;">Specify Sections per Branch</label>`;
+      branches.forEach((b) => {
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-dark); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);">
+            <span style="font-weight: 700; color: var(--accent);">${b}</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="number" class="branch-section-count-input" data-branch="${b}" min="1" max="10" value="1" required style="width: 80px; padding: 0.35rem; border-radius: 4px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); text-align: center; font-family: inherit; font-weight: 600;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">sections</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+    container.innerHTML = html;
+  };
+
+  branchesInput.addEventListener("input", updateSections);
+
   document
     .getElementById("add-dept-form")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("dept-name").value.trim().toUpperCase();
       const branchesStr = document.getElementById("dept-branches").value.trim();
-      const sectionsCount = parseInt(document.getElementById("dept-sections").value) || 1;
 
       if (!name || !branchesStr) {
         showToast("Please fill all required fields", "error");
@@ -13547,6 +13574,14 @@ window.showAddDepartmentModal = () => {
         return;
       }
 
+      const branchInputs = document.querySelectorAll(".branch-section-count-input");
+      const branchSectionsMap = {};
+      branchInputs.forEach((inp) => {
+        const br = inp.getAttribute("data-branch");
+        const count = parseInt(inp.value) || 1;
+        branchSectionsMap[br] = count;
+      });
+
       showToast("Configuring department stream...", "info");
 
       // 1. Insert Department
@@ -13567,7 +13602,8 @@ window.showAddDepartmentModal = () => {
       const years = ["1st", "2nd", "3rd", "4th"];
 
       branches.forEach((branch) => {
-        for (let s = 1; s <= sectionsCount; s++) {
+        const count = branchSectionsMap[branch] || 1;
+        for (let s = 1; s <= count; s++) {
           const secName = String(s);
           years.forEach((year) => {
             newBranchSecs.push({
@@ -13605,7 +13641,198 @@ window.showAddDepartmentModal = () => {
         return;
       }
 
-      showToast("Department, branches, and classes generated!");
+      showToast("Department setup successfully!");
+      closeModal();
+      await loadAllData();
+      window.renderDepartments(document.getElementById("main-content"));
+    });
+};
+
+window.showEditDepartmentModal = (deptId) => {
+  const d = currentState.departments.find((dept) => dept.id === deptId);
+  if (!d) return;
+
+  const bsList = currentState.branchSections.filter(
+    (bs) => bs.department_id === deptId,
+  );
+  const branches = window.getDeptBranches(d.name);
+  
+  const existingData = {};
+  branches.forEach((b) => {
+    const secs = [...new Set(bsList.filter((bs) => bs.branch === b).map((bs) => bs.section))];
+    existingData[b] = secs.length || 1;
+  });
+
+  showModal(
+    "Edit Department Configuration",
+    `
+        <form id="edit-dept-form">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Department Name</label>
+                <input type="text" id="edit-dept-name" value="${d.name}" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+            </div>
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Branches (comma-separated)</label>
+                <input type="text" id="edit-dept-branches" value="${branches.join(", ")}" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+            </div>
+            <div id="edit-branch-sections-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <!-- Dynamically rendered per branch -->
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 0.85rem; border-radius: 6px; font-weight: 700;">Update Department</button>
+        </form>
+    `,
+    null,
+    { hideConfirm: true },
+  );
+
+  const branchesInput = document.getElementById("edit-dept-branches");
+  const container = document.getElementById("edit-branch-sections-container");
+
+  const updateSections = () => {
+    const val = branchesInput.value;
+    const currentBranches = val.split(",").map((b) => b.trim().toUpperCase()).filter(Boolean);
+    if (!container) return;
+    
+    let html = "";
+    if (currentBranches.length > 0) {
+      html = `<label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; display: block;">Sections per Branch</label>`;
+      currentBranches.forEach((b) => {
+        const val = existingData[b] !== undefined ? existingData[b] : 1;
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-dark); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);">
+            <span style="font-weight: 700; color: var(--accent);">${b}</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="number" class="edit-branch-section-count-input" data-branch="${b}" min="1" max="10" value="${val}" required style="width: 80px; padding: 0.35rem; border-radius: 4px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); text-align: center; font-family: inherit; font-weight: 600;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">sections</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+    container.innerHTML = html;
+  };
+
+  updateSections();
+  branchesInput.addEventListener("input", updateSections);
+
+  document
+    .getElementById("edit-dept-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newName = document.getElementById("edit-dept-name").value.trim().toUpperCase();
+      const branchesStr = document.getElementById("edit-dept-branches").value.trim();
+
+      if (!newName || !branchesStr) {
+        showToast("Please fill all required fields", "error");
+        return;
+      }
+
+      const newBranches = branchesStr
+        .split(",")
+        .map((b) => b.trim().toUpperCase())
+        .filter(Boolean);
+
+      if (newBranches.length === 0) {
+        showToast("Please enter at least one branch code", "error");
+        return;
+      }
+
+      const branchInputs = document.querySelectorAll(".edit-branch-section-count-input");
+      const branchSectionsMap = {};
+      branchInputs.forEach((inp) => {
+        const br = inp.getAttribute("data-branch");
+        const count = parseInt(inp.value) || 1;
+        branchSectionsMap[br] = count;
+      });
+
+      showToast("Updating department configuration...", "info");
+
+      // 1. Delete old configuration items safely
+      // Delete old branch sections
+      const { error: delBsErr } = await supabaseClient
+        .from("branch_sections")
+        .delete()
+        .eq("department_id", deptId);
+
+      if (delBsErr) {
+        showToast("Error updating branch sections: " + delBsErr.message, "error");
+        return;
+      }
+
+      // Delete old classes
+      if (branches.length > 0) {
+        const { error: delClErr } = await supabaseClient
+          .from("classes")
+          .delete()
+          .in("branch", branches);
+
+        if (delClErr) {
+          showToast(
+            "Cannot modify/remove classes that are assigned to students or timetables. Please re-assign them first.",
+            "error",
+          );
+          await loadAllData();
+          return;
+        }
+      }
+
+      // 2. Update Department Name
+      const { error: deptErr } = await supabaseClient
+        .from("departments")
+        .update({ name: newName })
+        .eq("id", deptId);
+
+      if (deptErr) {
+        showToast(deptErr.message, "error");
+        return;
+      }
+
+      // 3. Generate and Insert new configurations
+      const newBranchSecs = [];
+      const newClasses = [];
+      const years = ["1st", "2nd", "3rd", "4th"];
+
+      newBranches.forEach((branch) => {
+        const count = branchSectionsMap[branch] || 1;
+        for (let s = 1; s <= count; s++) {
+          const secName = String(s);
+          years.forEach((year) => {
+            newBranchSecs.push({
+              department_id: deptId,
+              branch: branch,
+              year: year,
+              section: secName,
+            });
+            newClasses.push({
+              branch: branch,
+              year: year,
+              section: secName,
+            });
+          });
+        }
+      });
+
+      // Insert new Branch Sections
+      const { error: insBsErr } = await supabaseClient
+        .from("branch_sections")
+        .insert(newBranchSecs);
+
+      if (insBsErr) {
+        showToast(insBsErr.message, "error");
+        return;
+      }
+
+      // Insert new Classes
+      const { error: insClErr } = await supabaseClient
+        .from("classes")
+        .insert(newClasses);
+
+      if (insClErr) {
+        showToast(insClErr.message, "error");
+        return;
+      }
+
+      showToast("Department updated successfully!");
       closeModal();
       await loadAllData();
       window.renderDepartments(document.getElementById("main-content"));
