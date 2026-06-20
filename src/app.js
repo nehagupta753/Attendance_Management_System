@@ -188,6 +188,27 @@ window.getDeptBranches = (deptName) => {
   return branches.length > 0 ? branches : [deptName];
 };
 
+window.getBranchSectionsList = (branch) => {
+  const classes = currentState.classes || [];
+  const matching = branch ? classes.filter((c) => c.branch === branch) : classes;
+  const secs = [...new Set(matching.map((c) => String(c.section)))];
+  return secs.sort((a, b) => parseInt(a) - parseInt(b));
+};
+
+window.updateManualSectionOptions = () => {
+  const branchEl = document.getElementById("sel-branch");
+  const sectionEl = document.getElementById("sel-section");
+  if (!branchEl || !sectionEl) return;
+  const branch = branchEl.value;
+  const currentVal = sectionEl.value;
+  const secs = window.getBranchSectionsList(branch);
+  let html = `<option value="" disabled selected>Select Section</option>`;
+  secs.forEach((s) => {
+    html += `<option value="${s}" ${currentVal === s ? "selected" : ""}>${s}</option>`;
+  });
+  sectionEl.innerHTML = html;
+};
+
 async function loadAllData() {
   const [t, s, c, tt, sub, st, mstS, mstTt, mstM, depts, branchSecs] = await Promise.all([
     supabaseClient.from("teachers").select("*"),
@@ -3420,11 +3441,7 @@ async function renderMarkAttendance(container) {
                         <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Section:</span>
                         <select id="header-section" onchange="window.onHeaderClassChange()" style="background:#ffffff; color:var(--primary); padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:0.6rem; font-size:0.85rem; font-family:inherit; font-weight:700; cursor:pointer; outline:none; box-shadow:var(--shadow);">
                             <option value="" ${!selManual.section ? "selected" : ""}>-- Sec --</option>
-                            <option value="1" ${selManual.section === "1" ? "selected" : ""}>1</option>
-                            <option value="2" ${selManual.section === "2" ? "selected" : ""}>2</option>
-                            <option value="3" ${selManual.section === "3" ? "selected" : ""}>3</option>
-                            <option value="4" ${selManual.section === "4" ? "selected" : ""}>4</option>
-                            <option value="5" ${selManual.section === "5" ? "selected" : ""}>5</option>
+                            ${window.getBranchSectionsList(selManual.branch).map((s) => `<option value="${s}" ${selManual.section === s ? "selected" : ""}>${s}</option>`).join("")}
                         </select>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.35rem;">
@@ -3551,14 +3568,16 @@ async function renderMarkAttendance(container) {
                 </div>
                 <div class="form-group">
                     <label>Branch</label>
-                    <select id="sel-branch" required onchange="window.onManualFormChange()">
+                    <select id="sel-branch" required onchange="window.updateManualSectionOptions(); window.onManualFormChange()">
                         <option value="" disabled selected>Select Branch</option>
                         ${branchOptions.map((b) => `<option value="${b}">${b}</option>`).join("")}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Section</label>
-                    <select id="sel-section" required onchange="window.onManualFormChange()"><option value="" disabled selected>Select Section</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                    <select id="sel-section" required onchange="window.onManualFormChange()">
+                        <option value="" disabled selected>Select Section</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Class Type</label>
@@ -4239,11 +4258,7 @@ async function renderStudentHistory(container) {
                 <label>Section</label>
                 <select onchange="updateHistoryFilter('section', this.value)">
                     <option value="All">All</option>
-                    <option value="1" ${currentState.historyFilters.section === "1" ? "selected" : ""}>1</option>
-                    <option value="2" ${currentState.historyFilters.section === "2" ? "selected" : ""}>2</option>
-                    <option value="3" ${currentState.historyFilters.section === "3" ? "selected" : ""}>3</option>
-                    <option value="4" ${currentState.historyFilters.section === "4" ? "selected" : ""}>4</option>
-                    <option value="5" ${currentState.historyFilters.section === "5" ? "selected" : ""}>5</option>
+                    ${window.getBranchSectionsList(currentState.historyFilters.branch === "All" ? "" : currentState.historyFilters.branch).map((s) => `<option value="${s}" ${currentState.historyFilters.section === s ? "selected" : ""}>${s}</option>`).join("")}
                 </select>
             </div>
             <div class="form-group">
@@ -5914,11 +5929,7 @@ function renderTimetable(container) {
                 <label>Section</label>
                 <select onchange="updateTimetableFilter('section', this.value)">
                     <option value="">Select Section</option>
-                    <option value="1" ${filters.section === "1" ? "selected" : ""}>1</option>
-                    <option value="2" ${filters.section === "2" ? "selected" : ""}>2</option>
-                    <option value="3" ${filters.section === "3" ? "selected" : ""}>3</option>
-                    <option value="4" ${filters.section === "4" ? "selected" : ""}>4</option>
-                    <option value="5" ${filters.section === "5" ? "selected" : ""}>5</option>
+                    ${window.getBranchSectionsList(filters.branch).map((s) => `<option value="${s}" ${filters.section === s ? "selected" : ""}>${s}</option>`).join("")}
                 </select>
             </div>
         </div>
@@ -6422,7 +6433,7 @@ window.showAddStudentModal = () => {
                     </select>
                 </div>
                 <div class="form-group"><label>Year</label><select id="s-year" required><option value="" disabled selected>Select Year</option><option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option><option value="4th">4th</option></select></div>
-                <div class="form-group"><label>Section</label><select id="s-section" required><option value="" disabled selected>Select Section</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+                <div class="form-group"><label>Section</label><select id="s-section" required><option value="" disabled selected>Select Section</option></select></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                 <div class="form-group"><label>Lab Batch</label><select id="s-batch" required><option value="B1" selected>B1</option><option value="B2">B2</option></select></div>
@@ -6480,10 +6491,25 @@ window.showAddStudentModal = () => {
     },
     { isWide: true },
   );
+
+  const branchEl = document.getElementById("s-branch");
+  const sectionEl = document.getElementById("s-section");
+  if (branchEl && sectionEl) {
+    branchEl.addEventListener("change", () => {
+      const branch = branchEl.value;
+      const secs = window.getBranchSectionsList(branch);
+      let html = `<option value="" disabled selected>Select Section</option>`;
+      secs.forEach((s) => {
+        html += `<option value="${s}">${s}</option>`;
+      });
+      sectionEl.innerHTML = html;
+    });
+  }
 };
 
 window.editStudent = (id) => {
   const s = currentState.students.find((st) => st.id === id);
+  const deptBranches = currentState.deptBranches || [currentState.selectedDept];
   showModal(
     "Edit Student",
     `
@@ -6495,7 +6521,7 @@ window.editStudent = (id) => {
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
                 <div class="form-group"><label>Branch</label>
                     <select id="e-s-branch" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);">
-                        ${["CS", "IT", "CSIT", "DS", "AIML"].map((b) => `<option value="${b}" ${s.branch === b ? "selected" : ""}>${b}</option>`).join("")}
+                        ${deptBranches.map((b) => `<option value="${b}" ${s.branch === b ? "selected" : ""}>${b}</option>`).join("")}
                     </select>
                 </div>
                 <div class="form-group"><label>Year</label>
@@ -6505,7 +6531,7 @@ window.editStudent = (id) => {
                 </div>
                 <div class="form-group"><label>Section</label>
                     <select id="e-s-section" style="width:100%;padding:0.75rem;background:var(--bg-dark);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-main);">
-                        ${["1", "2", "3", "4", "5"].map((sec) => `<option value="${sec}" ${s.section === sec ? "selected" : ""}>${sec}</option>`).join("")}
+                        ${window.getBranchSectionsList(s.branch).map((sec) => `<option value="${sec}" ${s.section === sec ? "selected" : ""}>${sec}</option>`).join("")}
                     </select>
                 </div>
             </div>
@@ -6599,6 +6625,20 @@ window.editStudent = (id) => {
     },
     { confirmText: "Save Changes", isWide: true },
   );
+
+  const branchEl = document.getElementById("e-s-branch");
+  const sectionEl = document.getElementById("e-s-section");
+  if (branchEl && sectionEl) {
+    branchEl.addEventListener("change", () => {
+      const branch = branchEl.value;
+      const secs = window.getBranchSectionsList(branch);
+      let html = "";
+      secs.forEach((s) => {
+        html += `<option value="${s}">${s}</option>`;
+      });
+      sectionEl.innerHTML = html;
+    });
+  }
 };
 
 window.deleteStudent = async (id) => {
