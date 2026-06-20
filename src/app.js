@@ -4751,7 +4751,8 @@ window.changeScopedDept = (deptName) => {
 window.onHodFilterChange = () => {
   const b = document.getElementById("hod-filter-branch")?.value || "";
   const s = document.getElementById("hod-filter-section")?.value || "";
-  currentState.hodFilters = { branch: b, section: s };
+  const d = document.getElementById("hod-filter-date")?.value || new Date().toISOString().split("T")[0];
+  currentState.hodFilters = { branch: b, section: s, date: d };
   window.renderHodDashboard(document.getElementById("main-content"));
 };
 
@@ -12391,10 +12392,11 @@ window.renderHodDashboard = async (container) => {
   const deptBranches = window.getDeptBranches(activeDept);
 
   if (!currentState.hodFilters) {
-    currentState.hodFilters = { branch: "", section: "" };
+    currentState.hodFilters = { branch: "", section: "", date: new Date().toISOString().split("T")[0] };
   }
   const hBranch = currentState.hodFilters.branch;
   const hSection = currentState.hodFilters.section;
+  const hDate = currentState.hodFilters.date || new Date().toISOString().split("T")[0];
 
   const filteredStudents = currentState.students.filter((s) =>
     deptBranches.includes(s.branch),
@@ -12407,7 +12409,6 @@ window.renderHodDashboard = async (container) => {
   );
   const classIds = filteredClasses.map((c) => c.id);
 
-  const todayStr = new Date().toISOString().split("T")[0];
   const deptStudentIds = filteredStudents.map((s) => s.id);
   let todayRecords = [];
   let cumulativeRecords = [];
@@ -12418,7 +12419,7 @@ window.renderHodDashboard = async (container) => {
         supabaseClient
           .from("attendance_records")
           .select("*")
-          .eq("date", todayStr)
+          .eq("date", hDate)
           .in("student_id", deptStudentIds),
         supabaseClient
           .from("attendance_records")
@@ -12636,10 +12637,14 @@ window.renderHodDashboard = async (container) => {
             </div>
         </div>
 
-        <div class="card" style="display: flex; gap: 1rem; align-items: center; padding: 0.85rem 1.25rem; margin-bottom: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); flex-wrap: wrap;">
+        <div class="card" style="display: flex; gap: 1.25rem; align-items: center; padding: 0.85rem 1.25rem; margin-bottom: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); flex-wrap: wrap;">
             <span style="font-weight: 700; font-size: 0.82rem; color: var(--text-main); display: flex; align-items: center; gap: 0.35rem;">
                 <i data-lucide="sliders-horizontal" style="width: 14px; height: 14px; color: var(--primary);"></i> Filter View:
             </span>
+            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Date:</span>
+                <input type="date" id="hod-filter-date" onchange="window.onHodFilterChange()" value="${hDate}" style="background: var(--bg-dark); color: var(--primary); padding: 0.25rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+            </div>
             <div style="display: flex; align-items: center; gap: 0.35rem;">
                 <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Branch:</span>
                 <select id="hod-filter-branch" onchange="window.onHodFilterChange()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
