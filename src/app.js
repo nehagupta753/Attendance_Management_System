@@ -12432,34 +12432,55 @@ window.renderHodDashboard = async (container) => {
     console.error("Error fetching HOD stats:", err);
   }
 
-  const totalToday = todayRecords.length;
-  const presentToday = todayRecords.filter(
+  // Filter student IDs and records based on active HOD branch/section filters
+  const activeStudentIds = filteredStudents
+    .filter((s) => {
+      return (!hBranch || s.branch === hBranch) &&
+             (!hSection || String(s.section) === hSection);
+    })
+    .map((s) => s.id);
+
+  const displayTodayRecords = todayRecords.filter((r) => activeStudentIds.includes(r.student_id));
+  const displayCumulativeRecords = cumulativeRecords.filter((r) => activeStudentIds.includes(r.student_id));
+
+  const totalToday = displayTodayRecords.length;
+  const presentToday = displayTodayRecords.filter(
     (r) => r.status === "Present",
   ).length;
 
   let todayPct = "0.0";
   if (totalToday > 0) {
     todayPct = ((presentToday / totalToday) * 100).toFixed(1);
-  } else if (cumulativeRecords.length > 0) {
-    const cumPresent = cumulativeRecords.filter(
+  } else if (displayCumulativeRecords.length > 0) {
+    const cumPresent = displayCumulativeRecords.filter(
       (r) => r.status === "Present",
     ).length;
-    todayPct = ((cumPresent / cumulativeRecords.length) * 100).toFixed(1);
+    todayPct = ((cumPresent / displayCumulativeRecords.length) * 100).toFixed(1);
   } else {
     todayPct = "0.0";
   }
-  const sectionLabels = filteredClasses.map(
-    (cl) => `${cl.branch} ${cl.year}-${cl.section}`,
-  );
-  const sectionAttendance = filteredClasses.map((cl) => {
-    const clRecords = cumulativeRecords.filter((r) => r.class_id === cl.id);
-    if (clRecords.length > 0) {
-      const pres = clRecords.filter((r) => r.status === "Present").length;
-      return Math.round((pres / clRecords.length) * 100);
-    } else {
-      return 0;
-    }
-  });
+  const sectionLabels = filteredClasses
+    .filter((cl) => {
+      return (!hBranch || cl.branch === hBranch) &&
+             (!hSection || String(cl.section) === hSection);
+    })
+    .map((cl) => `${cl.branch} ${cl.year}-${cl.section}`);
+    
+  const sectionAttendance = filteredClasses
+    .filter((cl) => {
+      return (!hBranch || cl.branch === hBranch) &&
+             (!hSection || String(cl.section) === hSection);
+    })
+    .map((cl) => {
+      const clRecords = displayCumulativeRecords.filter((r) => r.class_id === cl.id);
+      if (clRecords.length > 0) {
+        const pres = clRecords.filter((r) => r.status === "Present").length;
+        return Math.round((pres / clRecords.length) * 100);
+      } else {
+        return 0;
+      }
+    });
+    
   const subjectsInDept = currentState.subjects
     .filter((sub) => {
       return currentState.timetable.some(
@@ -12469,7 +12490,7 @@ window.renderHodDashboard = async (container) => {
     .slice(0, 6);
   const subLabels = subjectsInDept.map((s) => s.code);
   const subAttendance = subjectsInDept.map((sub) => {
-    const subRecords = cumulativeRecords.filter((r) => r.subject_id === sub.id);
+    const subRecords = displayCumulativeRecords.filter((r) => r.subject_id === sub.id);
     if (subRecords.length > 0) {
       const pres = subRecords.filter((r) => r.status === "Present").length;
       return Math.round((pres / subRecords.length) * 100);
