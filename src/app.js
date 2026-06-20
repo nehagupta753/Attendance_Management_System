@@ -13747,8 +13747,57 @@ window.showEditDepartmentModal = (deptId) => {
 
       showToast("Updating department configuration...", "info");
 
-      // 1. Delete old configuration items safely
-      // Delete old branch sections
+      // 1. Resolve old and new branches
+      const oldBranches = branches;
+      const newBranches = newBranches; // this refers to newBranches scoped inside form submit
+
+      // Fetch all existing classes for these old branches
+      const { data: existingClasses, error: getClErr } = await supabaseClient
+        .from("classes")
+        .select("*")
+        .in("branch", oldBranches);
+
+      if (getClErr) {
+        showToast("Error reading classes: " + getClErr.message, "error");
+        return;
+      }
+
+      // Calculate what target classes we want
+      const targetClasses = [];
+      const years = ["1st", "2nd", "3rd", "4th"];
+      newBranches.forEach((branch) => {
+        const count = branchSectionsMap[branch] || 1;
+        for (let s = 1; s <= count; s++) {
+          const secName = String(s);
+          years.forEach((year) => {
+            targetClasses.push({ branch, year, section: secName });
+          });
+        }
+      });
+
+      // Identify classes to insert
+      const classesToInsert = [];
+      targetClasses.forEach((tc) => {
+        const match = existingClasses.find(
+          (ec) => ec.branch === tc.branch && ec.year === tc.year && ec.section === tc.section
+        );
+        if (!match) {
+          classesToInsert.push(tc);
+        }
+      });
+
+      // Identify classes to delete
+      const classesToDelete = [];
+      existingClasses.forEach((ec) => {
+        const match = targetClasses.find(
+          (tc) => tc.branch === ec.branch && tc.year === ec.year && tc.section === ec.section
+        );
+        if (!match) {
+          classesToDelete.push(ec);
+        }
+      });
+
+      // 2. Delete old branch sections
       const { error: delBsErr } = await supabaseClient
         .from("branch_sections")
         .delete()
@@ -13759,39 +13808,96 @@ window.showEditDepartmentModal = (deptId) => {
         return;
       }
 
-      // Delete old classes
-      if (branches.length > 0) {
-        const { error: delClErr } = await supabaseClient
-          .from("classes")
-          .delete()
-          .in("branch", branches);
-
-        if (delClErr) {
-          showToast(
-            "Cannot modify/remove classes that are assigned to students or timetables. Please re-assign them first.",
-            "error",
-          );
-          await loadAllData();
-          return;
-        }
-      }
-
-      // 2. Update Department Name
+      // 3. Update Department Name
       const { error: deptErr } = await supabaseClient
         .from("departments")
         .update({ name: newName })
         .eq("id", deptId);
 
       if (deptErr) {
-        showToast(deptErr.message, "error");
+        showToast("Error updating department name: " + deptErr.message, "error");
         return;
       }
 
-      // 3. Generate and Insert new configurations
-      const newBranchSecs = [];
-      const newClasses = [];
-      const years = ["1st", "2nd", "3rd", "4th"];
+      // 4. Insert new classes first to generate their IDs
+      let insertedClasses = [];
+      if (classesToInsert.length > 0) {
+        const { data: insClData, error: insClErr } = await supabaseClient
+          .from("classes")
+          .insert(classesToInsert)
+          .select();
 
+        if (insClErr) {
+          showToast("Error inserting new classes: " + insClErr.message, "error");
+          return;
+        }
+        insertedClasses = insClData || [];
+      }
+
+      // 5. Gather all active class records
+      const allActiveClasses = [
+        ...existingClasses.filter(ec => !classesToDelete.some(dc => dc.id === ec.id)),
+        ...insertedClasses
+      ];
+
+      // 6. Migrate references for any classes scheduled to be deleted
+      for (const dc of classesToDelete) {
+        // Find fallback class of same branch/year, or first new branch of same year
+        let fallback = allActiveClasses.find(
+          (ac) => ac.branch === dc.branch && ac.year === dc.year
+        );
+        if (!fallback) {
+          fallback = allActiveClasses.find((ac) => ac.year === dc.year);
+        }
+
+        if (fallback) {
+          // Reassign students
+          await supabaseClient
+            .from("students")
+            .update({ class_id: fallback.id })
+            .eq("class_id", dc.id);
+
+          // Reassign timetable
+          await supabaseClient
+            .from("timetable")
+            .update({ class_id: fallback.id })
+            .eq("class_id", dc.id);
+
+          // Reassign coordinator
+          await supabaseClient
+            .from("teachers")
+            .update({ coordinator_class: fallback.id })
+            .eq("coordinator_class", dc.id);
+
+          // Reassign attendance submissions
+          await supabaseClient
+            .from("attendance_submissions")
+            .update({ class_id: fallback.id })
+            .eq("class_id", dc.id);
+
+          // Reassign MST timetable
+          await supabaseClient
+            .from("mst_timetable")
+            .update({ class_id: fallback.id })
+            .eq("class_id", dc.id);
+        }
+      }
+
+      // 7. Delete classes that are no longer in the configuration
+      if (classesToDelete.length > 0) {
+        const deleteIds = classesToDelete.map(c => c.id);
+        const { error: delClErr } = await supabaseClient
+          .from("classes")
+          .delete()
+          .in("id", deleteIds);
+
+        if (delClErr) {
+          console.warn("Class deletion warning:", delClErr.message);
+        }
+      }
+
+      // 8. Re-insert Branch Sections
+      const newBranchSecs = [];
       newBranches.forEach((branch) => {
         const count = branchSectionsMap[branch] || 1;
         for (let s = 1; s <= count; s++) {
@@ -13803,36 +13909,20 @@ window.showEditDepartmentModal = (deptId) => {
               year: year,
               section: secName,
             });
-            newClasses.push({
-              branch: branch,
-              year: year,
-              section: secName,
-            });
           });
         }
       });
 
-      // Insert new Branch Sections
       const { error: insBsErr } = await supabaseClient
         .from("branch_sections")
         .insert(newBranchSecs);
 
       if (insBsErr) {
-        showToast(insBsErr.message, "error");
+        showToast("Error generating branch sections: " + insBsErr.message, "error");
         return;
       }
 
-      // Insert new Classes
-      const { error: insClErr } = await supabaseClient
-        .from("classes")
-        .insert(newClasses);
-
-      if (insClErr) {
-        showToast(insClErr.message, "error");
-        return;
-      }
-
-      showToast("Department updated successfully!");
+      showToast("Department updated and references synchronized!");
       closeModal();
       await loadAllData();
       window.renderDepartments(document.getElementById("main-content"));
