@@ -12013,8 +12013,15 @@ window.renderMstTimetableTeacher = async (container) => {
 
   container.innerHTML = `
         <div style="padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: var(--shadow);">
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0 0 0.5rem 0;">MST Exam Timetable</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 1.5rem 0;">View schedules for MST exams branch and section wise</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0 0 0.5rem 0;">MST Exam Timetable</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">View schedules for MST exams branch and section wise</p>
+                </div>
+                <button onclick="window.exportTeacherMstTimetableToCSV()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-main);">
+                    <i data-lucide="download" style="width: 16px; height: 16px;"></i> Download CSV
+                </button>
+            </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; align-items: end;">
                 <div class="form-group">
@@ -12084,6 +12091,76 @@ window.renderMstTimetableTeacher = async (container) => {
             </div>
         </div>
     `;
+  
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+};
+
+window.exportTeacherMstTimetableToCSV = () => {
+  const selectedBranch = document.getElementById("teacher-mst-tt-branch")?.value || "";
+  const selectedYear = document.getElementById("teacher-mst-tt-year")?.value || "";
+  const selectedSection = document.getElementById("teacher-mst-tt-section")?.value || "";
+
+  let filteredTt = currentState.mstTimetable || [];
+  if (selectedBranch) {
+    filteredTt = filteredTt.filter(
+      (t) => (t.classes?.branch || t.branch) === selectedBranch
+    );
+  }
+  if (selectedYear) {
+    filteredTt = filteredTt.filter((t) => t.classes?.year === selectedYear);
+  }
+  if (selectedSection) {
+    filteredTt = filteredTt.filter(
+      (t) => t.classes?.section === selectedSection
+    );
+  }
+
+  if (filteredTt.length === 0) {
+    showToast("No MST timetable records to download", "error");
+    return;
+  }
+  const headers = ["MST", "Branch", "Year", "Section", "Subject Code", "Subject Name", "Date", "Start Time", "End Time"];
+  const rows = filteredTt.map((t) => [
+    t.mst_name || "",
+    t.classes?.branch || t.branch || "",
+    t.classes?.year || "",
+    t.classes?.section || "",
+    t.subjects?.code || "",
+    t.subjects?.name || "",
+    t.exam_date || "",
+    t.start_time || "",
+    t.end_time || ""
+  ]);
+  
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((r) =>
+      r
+        .map((val) => {
+          let cell = val === null || val === undefined ? "" : String(val);
+          cell = cell.split('"').join('""');
+          if (cell.includes('"') || cell.includes(",") || cell.includes("\n")) {
+            cell = `"${cell}"`;
+          }
+          return cell;
+        })
+        .join(",")
+    ),
+  ].join("\r\n");
+
+  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `mst_timetable_${new Date().toISOString().split("T")[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("MST Timetable CSV downloaded successfully!");
 };
 
 window.saveTeacherMstFilters = () => {
