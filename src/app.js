@@ -2529,9 +2529,21 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
         </nav>
         <main class="main-content">
             <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); background: #ffffff; margin-top: -2rem; margin-left: -2.5rem; margin-right: -2.5rem; height: 70px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.01);">
-                <button class="mobile-menu-toggle" onclick="window.toggleSidebar()" style="display: none; background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 0.5rem; padding: 0.5rem; color: var(--text-main); cursor: pointer; align-items: center; justify-content: center; margin-right: 1rem;">
-                    <i data-lucide="menu"></i>
-                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="mobile-menu-toggle" onclick="window.toggleSidebar()" style="display: none; background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 0.5rem; padding: 0.5rem; color: var(--text-main); cursor: pointer; align-items: center; justify-content: center;">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    
+                    <div class="header-time-container" style="display: flex; align-items: center; gap: 0.6rem; font-family: inherit; background: var(--bg-dark); border: 1px solid var(--border); padding: 0.35rem 0.75rem; border-radius: 0.5rem;">
+                        <div style="color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column; text-align: left;">
+                            <span id="header-live-date" style="font-size: 0.75rem; font-weight: 700; color: var(--text-main); line-height: 1.2;"></span>
+                            <span id="header-live-time" style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; font-family: monospace; line-height: 1.2;"></span>
+                        </div>
+                    </div>
+                </div>
                 ${
                   currentState.role === "admin" && (currentState.departments || []).length > 0
                     ? `
@@ -2576,6 +2588,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
         </main>
     `;
   lucide.createIcons();
+  window.startHeaderLiveClock();
   renderActiveView();
 }
 
@@ -4820,6 +4833,38 @@ function startLiveClock() {
     clockEl.textContent = `${dateStr} ${timeStr}`;
   }, 1000);
 }
+
+window.startHeaderLiveClock = () => {
+  if (window.headerClockInterval) {
+    clearInterval(window.headerClockInterval);
+  }
+  const updateClock = () => {
+    const dateEl = document.getElementById("header-live-date");
+    const timeEl = document.getElementById("header-live-time");
+    if (!dateEl || !timeEl) return;
+
+    const now = new Date();
+    
+    const dateStr = now.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const timeStr = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    });
+
+    dateEl.textContent = dateStr;
+    timeEl.textContent = timeStr;
+  };
+  
+  updateClock();
+  window.headerClockInterval = setInterval(updateClock, 1000);
+};
 
 async function renderDashboard(c) {
   const formatDbTime = (dbTime) => {
