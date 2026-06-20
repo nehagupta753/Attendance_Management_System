@@ -1141,17 +1141,27 @@ button {
     font-size: 0.6rem !important;
   }
 
-  /* Force tables to scroll horizontally even without .table-container */
+  /* Ensure tables use standard table layout on mobile to align columns correctly */
   table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    display: table !important;
+    width: max-content !important;
+    min-width: 100% !important;
   }
 
-  thead, tbody, tr {
-    display: table;
-    width: 100%;
-    table-layout: auto;
+  thead {
+    display: table-header-group !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+
+  tr {
+    display: table-row !important;
+  }
+
+  th, td {
+    display: table-cell !important;
   }
 
   /* Dashboard faculty tables */
