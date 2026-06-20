@@ -223,7 +223,7 @@ async function loadAllData() {
     supabaseClient.from("students").select("*"),
     supabaseClient.from("mst_settings").select("*"),
     supabaseClient.from("mst_timetable").select("*, subjects(*), classes(*)"),
-    supabaseClient.from("mst_marks").select("*, students(*), subjects(*)"),
+    supabaseClient.from("mst_marks").select("*"),
     supabaseClient.from("departments").select("*"),
     supabaseClient.from("branch_sections").select("*"),
   ]);
@@ -2462,6 +2462,9 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                     <div class="nav-item ${currentState.view === "hodDashboard" ? "active" : ""}" onclick="window.switchView('hodDashboard')">
                         <span class="nav-item-content"><i data-lucide="home"></i> HOD Dashboard</span>
                     </div>
+                    <div class="nav-item ${currentState.view === "studentHistory" ? "active" : ""}" onclick="window.switchView('studentHistory')">
+                        <span class="nav-item-content"><i data-lucide="calendar"></i> Student History</span>
+                    </div>
                     <div class="nav-item" onclick="window.switchAdminScope()" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; cursor: pointer;">
                         <span class="nav-item-content" style="color: var(--primary); font-weight: 700;">
                             <i data-lucide="refresh-cw" style="color: var(--primary);"></i> Switch Mode/Scope
@@ -4195,13 +4198,32 @@ async function renderStudentHistory(container) {
   }
 
   if (!currentState.studentHistoryRecords) {
-    const { data: history } = await supabaseClient
+    let query = supabaseClient
       .from("attendance_records")
-      .select("*, students(*), subjects(*), classes(*)")
-      .or(
+      .select("*, students(*), subjects(*), classes(*)");
+
+    if (currentState.role === "hod") {
+      let activeDept = currentState.hodDept || "IT";
+      if (currentState.teacherData?.is_hod) {
+        activeDept = currentState.teacherData.hod_dept || currentState.teacherData.department || "IT";
+      }
+      const deptBranches = window.getDeptBranches(activeDept);
+      const deptStudentIds = currentState.students
+        .filter((s) => deptBranches.includes(s.branch))
+        .map((s) => s.id);
+
+      if (deptStudentIds.length > 0) {
+        query = query.in("student_id", deptStudentIds);
+      } else {
+        query = query.eq("student_id", "00000000-0000-0000-0000-000000000000");
+      }
+    } else {
+      query = query.or(
         `teacher_id.eq.${currentState.teacherData.id},teacher_ids.cs.{"${currentState.teacherData.id}"}`,
-      )
-      .order("date", { ascending: false });
+      );
+    }
+
+    const { data: history } = await query.order("date", { ascending: false });
     currentState.studentHistoryRecords = history || [];
   }
   const filteredHistory = currentState.studentHistoryRecords.filter((h) => {
@@ -10769,7 +10791,12 @@ window.renderMstTimetable = async (container) => {
         </div>
 
         <div style="padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: var(--shadow);">
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0 0 1rem 0;">MST Timetable Records</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0;">MST Timetable Records</h2>
+                <button onclick="window.exportMstTimetableToCSV()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-main);">
+                    <i data-lucide="download" style="width: 16px; height: 16px;"></i> Download CSV
+                </button>
+            </div>
             
             <div style="overflow-x: auto;">
                 <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -11223,6 +11250,54 @@ window.saveAllMstSchedules = async (event, classId) => {
   showToast("MST timetable saved successfully!");
   await loadAllData();
   renderActiveView();
+};
+
+window.exportMstTimetableToCSV = () => {
+  const records = currentState.mstTimetable || [];
+  if (records.length === 0) {
+    showToast("No MST timetable records to download", "error");
+    return;
+  }
+  const headers = ["MST", "Branch", "Year", "Section", "Subject Code", "Subject Name", "Date", "Start Time", "End Time"];
+  const rows = records.map((t) => [
+    t.mst_name || "",
+    t.classes?.branch || t.branch || "",
+    t.classes?.year || "",
+    t.classes?.section || "",
+    t.subjects?.code || "",
+    t.subjects?.name || "",
+    t.exam_date || "",
+    t.start_time || "",
+    t.end_time || ""
+  ]);
+  
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((r) =>
+      r
+        .map((val) => {
+          let cell = val === null || val === undefined ? "" : String(val);
+          cell = cell.split('"').join('""');
+          if (cell.includes('"') || cell.includes(",") || cell.includes("\n")) {
+            cell = `"${cell}"`;
+          }
+          return cell;
+        })
+        .join(",")
+    ),
+  ].join("\r\n");
+
+  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `mst_timetable_records_${new Date().toISOString().split("T")[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("MST Timetable CSV downloaded successfully!");
 };
 
 window.deleteMstTimetable = async (id) => {
@@ -12412,22 +12487,42 @@ window.renderHodDashboard = async (container) => {
   const deptStudentIds = filteredStudents.map((s) => s.id);
   let todayRecords = [];
   let cumulativeRecords = [];
+  let dailyTrendData = [];
 
   try {
     if (deptStudentIds.length > 0) {
       const [todayRes, cumRes] = await Promise.all([
         supabaseClient
           .from("attendance_records")
-          .select("*")
+          .select("*, students(*), subjects(*), classes(*)")
           .eq("date", hDate)
           .in("student_id", deptStudentIds),
         supabaseClient
           .from("attendance_records")
-          .select("status, class_id, subject_id")
+          .select("status, class_id, subject_id, student_id, date")
           .in("student_id", deptStudentIds),
       ]);
       todayRecords = todayRes.data || [];
       cumulativeRecords = cumRes.data || [];
+
+      // Build daily trend from cumulative records
+      const dailyMap = new Map();
+      cumulativeRecords.forEach((r) => {
+        if (!dailyMap.has(r.date)) dailyMap.set(r.date, { total: 0, present: 0 });
+        const d = dailyMap.get(r.date);
+        d.total++;
+        if (r.status === "Present") d.present++;
+      });
+      dailyTrendData = [...dailyMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-14) // last 14 days
+        .map(([date, val]) => ({
+          date,
+          label: new Date(date + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+          pct: val.total > 0 ? Math.round((val.present / val.total) * 100) : 0,
+          total: val.total,
+          present: val.present,
+        }));
     }
   } catch (err) {
     console.error("Error fetching HOD stats:", err);
@@ -12443,6 +12538,36 @@ window.renderHodDashboard = async (container) => {
 
   const displayTodayRecords = todayRecords.filter((r) => activeStudentIds.includes(r.student_id));
   const displayCumulativeRecords = cumulativeRecords.filter((r) => activeStudentIds.includes(r.student_id));
+
+  // Group displayTodayRecords into sessions for listing on dashboard
+  const todaySessions = [];
+  const todaySessionMap = new Map();
+
+  displayTodayRecords.forEach((record) => {
+    const key = `${record.date}-${record.class_id}-${record.subject_id}-${record.batch || "All"}-${record.lecture_no || 1}`;
+    if (!todaySessionMap.has(key)) {
+      const session = {
+        id: key,
+        date: record.date,
+        batch: record.batch || null,
+        lecture_no: record.lecture_no || 1,
+        teacher_ids: record.teacher_ids || [record.teacher_id],
+        class: record.classes || {
+          branch: record.students?.branch,
+          year: record.students?.year,
+          section: record.students?.section,
+        },
+        subject: record.subjects,
+        records: [],
+        presentCount: 0,
+      };
+      todaySessionMap.set(key, session);
+      todaySessions.push(session);
+    }
+    const session = todaySessionMap.get(key);
+    session.records.push(record);
+    if (record.status === "Present") session.presentCount++;
+  });
 
   const totalToday = displayTodayRecords.length;
   const presentToday = displayTodayRecords.filter(
@@ -12460,45 +12585,43 @@ window.renderHodDashboard = async (container) => {
   } else {
     todayPct = "0.0";
   }
-  const sectionLabels = filteredClasses
-    .filter((cl) => {
-      return (!hBranch || cl.branch === hBranch) &&
-             (!hSection || String(cl.section) === hSection);
-    })
-    .map((cl) => `${cl.branch} ${cl.year}-${cl.section}`);
-    
-  const sectionAttendance = filteredClasses
-    .filter((cl) => {
-      return (!hBranch || cl.branch === hBranch) &&
-             (!hSection || String(cl.section) === hSection);
-    })
-    .map((cl) => {
-      const clRecords = displayCumulativeRecords.filter((r) => r.class_id === cl.id);
-      if (clRecords.length > 0) {
-        const pres = clRecords.filter((r) => r.status === "Present").length;
-        return Math.round((pres / clRecords.length) * 100);
-      } else {
-        return 0;
-      }
-    });
-    
-  const subjectsInDept = currentState.subjects
-    .filter((sub) => {
-      return currentState.timetable.some(
-        (t) => t.subject_id === sub.id && classIds.includes(t.class_id),
-      );
-    })
-    .slice(0, 6);
-  const subLabels = subjectsInDept.map((s) => s.code);
+  // Only show sections that actually have attendance data
+  const classesWithFilter = filteredClasses.filter((cl) => {
+    return (!hBranch || cl.branch === hBranch) && (!hSection || String(cl.section) === hSection);
+  });
+  const classesWithData = classesWithFilter.filter((cl) =>
+    displayCumulativeRecords.some((r) => r.class_id === cl.id),
+  );
+  const sectionLabels = classesWithData.map((cl) => `${cl.branch} ${cl.year}-${cl.section}`);
+  const sectionAttendance = classesWithData.map((cl) => {
+    const clRecords = displayCumulativeRecords.filter((r) => r.class_id === cl.id);
+    const pres = clRecords.filter((r) => r.status === "Present").length;
+    return Math.round((pres / clRecords.length) * 100);
+  });
+  const sectionTotal = classesWithData.map((cl) => {
+    return displayCumulativeRecords.filter((r) => r.class_id === cl.id).length;
+  });
+
+  // Only show subjects that actually have attendance records
+  const subjectIdsWithData = [...new Set(displayCumulativeRecords.map((r) => r.subject_id))];
+  const subjectsInDept = currentState.subjects.filter(
+    (sub) => subjectIdsWithData.includes(sub.id),
+  );
+  const subLabels = subjectsInDept.map((s) => s.name.length > 15 ? s.code || s.name.substring(0, 15) : s.name);
   const subAttendance = subjectsInDept.map((sub) => {
     const subRecords = displayCumulativeRecords.filter((r) => r.subject_id === sub.id);
-    if (subRecords.length > 0) {
-      const pres = subRecords.filter((r) => r.status === "Present").length;
-      return Math.round((pres / subRecords.length) * 100);
-    } else {
-      return 0;
-    }
+    const pres = subRecords.filter((r) => r.status === "Present").length;
+    return Math.round((pres / subRecords.length) * 100);
   });
+  const subTotal = subjectsInDept.map((sub) => {
+    return displayCumulativeRecords.filter((r) => r.subject_id === sub.id).length;
+  });
+
+  // Daily trend labels and data
+  const trendLabels = dailyTrendData.map((d) => d.label);
+  const trendValues = dailyTrendData.map((d) => d.pct);
+  const trendPresent = dailyTrendData.map((d) => d.present);
+  const trendTotal = dailyTrendData.map((d) => d.total);
   const currentAchievements = [];
   filteredStudents.forEach((s) => {
     if (
@@ -12585,13 +12708,13 @@ window.renderHodDashboard = async (container) => {
   const mst1Averages = [];
   const mst2Averages = [];
 
+  const mstStudents = filteredStudents.filter((s) => {
+    return (!hBranch || s.branch === hBranch) &&
+           (!hSection || String(s.section) === hSection);
+  });
+
   scheduledSubjects.forEach((sub) => {
     mstSubjectLabels.push(sub.name);
-
-    const mstStudents = filteredStudents.filter((s) => {
-      return (!hBranch || s.branch === hBranch) &&
-             (!hSection || String(s.section) === hSection);
-    });
 
     const subjectMstMarks = currentState.mstMarks.filter(
       (m) =>
@@ -12600,20 +12723,20 @@ window.renderHodDashboard = async (container) => {
         mstStudents.some((s) => s.id === m.student_id),
     );
 
-    const mst1Marks = subjectMstMarks.filter((m) => m.exam_type === "mst1");
-    const mst2Marks = subjectMstMarks.filter((m) => m.exam_type === "mst2");
+    const mst1Marks = subjectMstMarks.filter((m) => m.mst_name === "mst-1");
+    const mst2Marks = subjectMstMarks.filter((m) => m.mst_name === "mst-2");
 
     const m1Avg =
       mst1Marks.length > 0
         ? (
-            mst1Marks.reduce((sum, m) => sum + (m.marks || 0), 0) /
+            mst1Marks.reduce((sum, m) => sum + parseFloat(m.marks || 0), 0) /
             mst1Marks.length
           ).toFixed(1)
         : 0;
     const m2Avg =
       mst2Marks.length > 0
         ? (
-            mst2Marks.reduce((sum, m) => sum + (m.marks || 0), 0) /
+            mst2Marks.reduce((sum, m) => sum + parseFloat(m.marks || 0), 0) /
             mst2Marks.length
           ).toFixed(1)
         : 0;
@@ -12752,11 +12875,27 @@ window.renderHodDashboard = async (container) => {
                 </div>
             </div>
         </div>
+        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="trending-up" style="width: 16px; height: 16px; color: #10b981;"></i>
+                    Daily Attendance Trend
+                </h3>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Last ${dailyTrendData.length} days · ${displayCumulativeRecords.length} total records</span>
+            </div>
+            <div style="height: 220px; position: relative; width: 100%;">
+                <canvas id="hod-trend-chart"></canvas>
+            </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Section-wise Attendance</h3>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Today's Attendance Rate (%)</span>
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                        <i data-lucide="bar-chart-3" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+                        Section-wise Attendance
+                    </h3>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${sectionLabels.length > 0 ? sectionLabels.length + " active sections" : "No data"}</span>
                 </div>
                 <div style="height: 220px; position: relative; width: 100%;">
                     <canvas id="hod-section-chart"></canvas>
@@ -12764,8 +12903,11 @@ window.renderHodDashboard = async (container) => {
             </div>
             <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Subject-wise Attendance</h3>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Lecture-wise Attendance Rate (%)</span>
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                        <i data-lucide="book-open" style="width: 16px; height: 16px; color: #10b981;"></i>
+                        Subject-wise Attendance
+                    </h3>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${subLabels.length > 0 ? subLabels.length + " subjects tracked" : "No data"}</span>
                 </div>
                 <div style="height: 220px; position: relative; width: 100%;">
                     <canvas id="hod-subject-chart"></canvas>
@@ -12871,6 +13013,55 @@ window.renderHodDashboard = async (container) => {
                 </div>
             </div>
         </div>
+        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Conducted Lectures & Marked Attendance</h3>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Date: ${hDate}</span>
+            </div>
+            <div class="table-container" style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600;">
+                            <th style="padding: 0.5rem;">Class</th>
+                            <th style="padding: 0.5rem;">Subject</th>
+                            <th style="padding: 0.5rem;">Attendance Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${todaySessions
+                          .map(
+                            (s) => `
+                            <tr style="border-bottom: 1px dashed var(--border); color: var(--text-main);">
+                                <td style="padding: 0.5rem;"><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 0.25rem 0.5rem; border-radius: 1rem; font-size: 0.72rem; font-weight: 600;">${s.class?.branch} ${s.class?.year}-${s.class?.section}${s.batch ? ` (${s.batch})` : ""} · Lec ${s.lecture_no}</span></td>
+                                <td style="padding: 0.5rem; font-weight: 500;">${s.subject?.name || "Unknown"}</td>
+                                <td style="padding: 0.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="flex: 1; min-width: 100px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                                            <div style="width: ${(s.presentCount / s.records.length) * 100}%; height: 100%; background: #10b981;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 45px;">${s.presentCount}/${s.records.length}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `,
+                          )
+                          .join("")}
+                        ${
+                          todaySessions.length === 0
+                            ? `
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                                    No attendance recorded for this date and selected scope filters.
+                                </td>
+                            </tr>
+                        `
+                            : ""
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Subject-wise MST Performance</h3>
@@ -12886,22 +13077,80 @@ window.renderHodDashboard = async (container) => {
   startLiveClock();
 
   setTimeout(() => {
+    // ===== Daily Attendance Trend Chart =====
+    const trendCtx = document.getElementById("hod-trend-chart");
+    if (trendCtx) {
+      new Chart(trendCtx.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: trendLabels.length > 0 ? trendLabels : ["No Data"],
+          datasets: [
+            {
+              label: "Attendance %",
+              data: trendValues.length > 0 ? trendValues : [0],
+              borderColor: "#6366f1",
+              backgroundColor: (ctx) => {
+                const chart = ctx.chart;
+                const { ctx: canvasCtx, chartArea } = chart;
+                if (!chartArea) return "rgba(99, 102, 241, 0.1)";
+                const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, "rgba(99, 102, 241, 0.3)");
+                gradient.addColorStop(1, "rgba(99, 102, 241, 0.02)");
+                return gradient;
+              },
+              borderWidth: 2.5,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: "#6366f1",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => {
+                  const i = ctx.dataIndex;
+                  return trendPresent[i] !== undefined ? `${trendPresent[i]}/${trendTotal[i]} records` : '';
+                },
+              },
+            },
+          },
+          scales: {
+            y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    // ===== Section-wise Attendance Bar Chart =====
     const sCtx = document.getElementById("hod-section-chart");
     if (sCtx) {
+      const secColors = sectionAttendance.map((v) =>
+        v >= 75 ? "rgba(16, 185, 129, 0.7)" : v >= 50 ? "rgba(245, 158, 11, 0.7)" : "rgba(239, 68, 68, 0.7)",
+      );
+      const secBorders = sectionAttendance.map((v) =>
+        v >= 75 ? "#10b981" : v >= 50 ? "#f59e0b" : "#ef4444",
+      );
       new Chart(sCtx.getContext("2d"), {
         type: "bar",
         data: {
-          labels:
-            sectionLabels.length > 0
-              ? sectionLabels
-              : ["Sec A", "Sec B", "Sec C"],
+          labels: sectionLabels.length > 0 ? sectionLabels : ["No sections with data"],
           datasets: [
             {
-              label: "Attendance Rate (%)",
-              data:
-                sectionAttendance.length > 0 ? sectionAttendance : [92, 94, 88],
-              backgroundColor: "rgba(59, 130, 246, 0.65)",
-              borderColor: "#3b82f6",
+              label: "Attendance %",
+              data: sectionAttendance.length > 0 ? sectionAttendance : [0],
+              backgroundColor: secColors.length > 0 ? secColors : ["rgba(59,130,246,0.6)"],
+              borderColor: secBorders.length > 0 ? secBorders : ["#3b82f6"],
               borderWidth: 1.5,
               borderRadius: 6,
               borderSkipped: false,
@@ -12911,43 +13160,70 @@ window.renderHodDashboard = async (container) => {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => {
+                  const i = ctx.dataIndex;
+                  return sectionTotal[i] ? `Based on ${sectionTotal[i]} records` : '';
+                },
+              },
+            },
+          },
           scales: {
-            y: { min: 0, max: 100, ticks: { font: { size: 9 } } },
-            x: { ticks: { font: { size: 9 } } },
+            y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
+            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
           },
         },
       });
     }
 
+    // ===== Subject-wise Attendance Chart =====
     const subCtx = document.getElementById("hod-subject-chart");
     if (subCtx) {
+      const subColors = [
+        "rgba(99, 102, 241, 0.7)", "rgba(16, 185, 129, 0.7)", "rgba(245, 158, 11, 0.7)",
+        "rgba(236, 72, 153, 0.7)", "rgba(139, 92, 246, 0.7)", "rgba(59, 130, 246, 0.7)",
+        "rgba(234, 88, 12, 0.7)", "rgba(14, 165, 233, 0.7)", "rgba(168, 85, 247, 0.7)",
+      ];
+      const subBorderColors = [
+        "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6",
+        "#ea580c", "#0ea5e9", "#a855f7",
+      ];
       new Chart(subCtx.getContext("2d"), {
-        type: "line",
+        type: "bar",
         data: {
-          labels:
-            subLabels.length > 0
-              ? subLabels
-              : ["SUB1", "SUB2", "SUB3", "SUB4", "SUB5"],
+          labels: subLabels.length > 0 ? subLabels : ["No subjects with data"],
           datasets: [
             {
-              label: "Attendance Rate (%)",
-              data: subAttendance,
-              borderColor: "#10b981",
-              backgroundColor: "rgba(16, 185, 129, 0.1)",
-              borderWidth: 2,
-              tension: 0.3,
-              fill: true,
+              label: "Attendance %",
+              data: subAttendance.length > 0 ? subAttendance : [0],
+              backgroundColor: subLabels.map((_, i) => subColors[i % subColors.length]),
+              borderColor: subLabels.map((_, i) => subBorderColors[i % subBorderColors.length]),
+              borderWidth: 1.5,
+              borderRadius: 6,
+              borderSkipped: false,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => {
+                  const i = ctx.dataIndex;
+                  return subTotal[i] ? `Based on ${subTotal[i]} records` : '';
+                },
+              },
+            },
+          },
           scales: {
-            y: { min: 0, max: 100, ticks: { font: { size: 9 } } },
-            x: { ticks: { font: { size: 9 } } },
+            y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
+            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
           },
         },
       });
@@ -12990,7 +13266,11 @@ window.renderHodDashboard = async (container) => {
             },
           },
           scales: {
-            y: { min: 0, max: 20, ticks: { font: { size: 9 } } },
+            y: {
+              min: 0,
+              max: (currentState.mstSettings || []).reduce((m, s) => Math.max(m, parseFloat(s.total_marks || 20)), 20),
+              ticks: { font: { size: 9 } }
+            },
             x: { ticks: { font: { size: 9 } } },
           },
         },
@@ -13315,20 +13595,20 @@ window.showHodMstDetailsModal = () => {
         !m.is_absent,
     );
 
-    const mst1Marks = classMstMarks.filter((m) => m.exam_type === "mst1");
-    const mst2Marks = classMstMarks.filter((m) => m.exam_type === "mst2");
+    const mst1Marks = classMstMarks.filter((m) => m.mst_name === "mst-1");
+    const mst2Marks = classMstMarks.filter((m) => m.mst_name === "mst-2");
 
     const m1Avg =
       mst1Marks.length > 0
         ? (
-            mst1Marks.reduce((sum, m) => sum + (m.marks || 0), 0) /
+            mst1Marks.reduce((sum, m) => sum + parseFloat(m.marks || 0), 0) /
             mst1Marks.length
           ).toFixed(1)
         : "-";
     const m2Avg =
       mst2Marks.length > 0
         ? (
-            mst2Marks.reduce((sum, m) => sum + (m.marks || 0), 0) /
+            mst2Marks.reduce((sum, m) => sum + parseFloat(m.marks || 0), 0) /
             mst2Marks.length
           ).toFixed(1)
         : "-";
