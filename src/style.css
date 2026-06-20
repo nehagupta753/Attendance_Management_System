@@ -2681,3 +2681,243 @@ button {
 .short-text {
   display: none;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   COMPREHENSIVE PHONE RESPONSIVE (≤ 768px)
+   Clean, readable, properly spaced layout for all portals
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Student Portal Nav ── */
+  nav[style*="position: sticky"] {
+    padding: 0.75rem 1rem !important;
+  }
+
+  nav[style*="position: sticky"] > div {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Logo / title area */
+  nav[style*="position: sticky"] > div > div:first-child {
+    font-size: 1rem !important;
+  }
+
+  nav[style*="position: sticky"] > div > div:first-child i {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  /* Right side buttons group in student nav */
+  nav[style*="position: sticky"] > div > div:last-child {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+
+  /* Course/Branch/Year pill in student nav */
+  nav[style*="position: sticky"] div[style*="border-radius: 2rem"] {
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.75rem !important;
+  }
+
+  /* Change Password & Exit Portal buttons */
+  nav[style*="position: sticky"] button[style*="border: 1px solid #cbd5e1"] {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* ── Hero / Greeting Section ── */
+  div[style*="margin-bottom: 2.5rem"][style*="display: flex"][style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Student name heading */
+  h1[style*="font-size: 2.25rem"] {
+    font-size: 1.5rem !important;
+  }
+
+  /* Subtitle */
+  p[style*="font-size: 1rem"][style*="font-weight: 500"] {
+    font-size: 0.85rem !important;
+  }
+
+  /* Roll Number card */
+  div[style*="border-radius: 1rem"][style*="padding: 0.75rem 1.5rem"][style*="align-items: center"][style*="gap: 1rem"] {
+    padding: 0.6rem 1rem !important;
+  }
+
+  /* ── Stats Grid ── */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  /* Stat card values */
+  div[style*="font-size: 2.75rem"] {
+    font-size: 2rem !important;
+  }
+
+  div[style*="font-size: 1.85rem"] {
+    font-size: 1.4rem !important;
+  }
+
+  /* Stat cards - reduce min-height */
+  .stats-grid > div {
+    min-height: 130px !important;
+  }
+
+  /* ── Subject Attendance Cards ── */
+  div[style*="grid-template-columns: repeat(auto-fit, minmax(320px"] {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Subject card internal layout */
+  div[style*="padding: 1.25rem"][style*="border-radius: 1rem"][style*="border: 1px solid"] {
+    padding: 1rem !important;
+  }
+
+  /* Percentage text inside subject cards */
+  div[style*="font-size: 2.5rem"] {
+    font-size: 1.75rem !important;
+  }
+
+  /* ── Content container padding ── */
+  div[style*="max-width:1400px"][style*="margin:0 auto"] {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* ── Tables: Horizontal scroll with proper readability ── */
+  div[style*="overflow-x:auto"],
+  div[style*="overflow-x: auto"],
+  .table-container {
+    border-radius: 0.5rem !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  /* ── Change Password Form ── */
+  div[style*="max-width: 500px"][style*="margin: 0 auto"] {
+    max-width: 100% !important;
+  }
+
+  /* ── Update Profile form ── */
+  div[style*="grid-template-columns: 1fr 1fr"][style*="gap: 1rem"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Form inputs on mobile ── */
+  input[style*="padding:0.65rem"],
+  select[style*="padding:0.65rem"] {
+    font-size: 0.85rem !important;
+  }
+
+  /* ── Coordinator / Teacher / HOD / Admin portal main content ── */
+  .main-content > div[style*="max-width"] {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* ── Cards ── */
+  .card[style*="padding: 1.5rem"],
+  div[style*="padding: 1.5rem"][style*="border-radius: 1rem"][style*="background: #ffffff"] {
+    padding: 1rem !important;
+  }
+
+  /* ── Chart containers ── */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* ── Headings inside all portals ── */
+  h2[style*="font-size: 1.4rem"],
+  h2[style*="font-size: 1.5rem"],
+  h2[style*="font-size: 1.6rem"] {
+    font-size: 1.15rem !important;
+  }
+
+  h3[style*="font-size: 1.2rem"],
+  h3[style*="font-size: 1.25rem"] {
+    font-size: 1rem !important;
+  }
+
+  /* ── Modal overlays on mobile ── */
+  .modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+
+  /* ── Ensure no horizontal overflow globally ── */
+  div[style*="width: 100%"][style*="min-height: 100vh"] {
+    overflow-x: hidden !important;
+  }
+
+  /* ── Teacher/Coordinator header compact ── */
+  .app-header > div {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXTRA SMALL PHONE POLISH (≤ 480px) 
+   Additional refinements for very small screens
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  /* Student portal nav: stack vertically */
+  nav[style*="position: sticky"] > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  nav[style*="position: sticky"] > div > div:last-child {
+    justify-content: flex-start !important;
+  }
+
+  /* Greeting heading smaller */
+  h1[style*="font-size: 2.25rem"] {
+    font-size: 1.25rem !important;
+  }
+
+  /* Stat values */
+  div[style*="font-size: 2.75rem"] {
+    font-size: 1.6rem !important;
+  }
+
+  div[style*="font-size: 2.5rem"] {
+    font-size: 1.4rem !important;
+  }
+
+  div[style*="font-size: 1.85rem"] {
+    font-size: 1.2rem !important;
+  }
+
+  /* All stat cards reduce height */
+  .stats-grid > div {
+    min-height: 110px !important;
+    padding: 1rem !important;
+  }
+
+  /* Student tab container compact */
+  .student-tab-container {
+    padding: 0.3rem !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Subject attendance cards */
+  div[style*="padding: 1.25rem"][style*="border-radius: 1rem"] {
+    padding: 0.75rem !important;
+  }
+
+  div[style*="font-size: 2.5rem"] {
+    font-size: 1.3rem !important;
+  }
+}
