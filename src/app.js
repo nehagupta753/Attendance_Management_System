@@ -87,24 +87,109 @@ async function checkRoleAndLoadData() {
       localStorage.setItem("admin_selected_dept", "IT");
     }
     currentState.selectedDept = savedDept;
-    const DEPT_CONFIG = {
-      IT: ["IT", "DS"],
-      CS: ["CS"],
-      CSIT: ["CSIT"],
-      AIML: ["AIML"],
-      ECE: ["ECE"],
-      ME: ["ME"],
-      CE: ["CE"],
-    };
-    currentState.deptBranches = savedDept
-      ? DEPT_CONFIG[savedDept] || [savedDept]
-      : [];
   }
   await loadAllData();
+  if (currentState.role === "admin") {
+    currentState.deptBranches = currentState.selectedDept
+      ? window.getDeptBranches(currentState.selectedDept)
+      : [];
+  }
 }
 
+const DEFAULT_DEPTS = [
+  { name: "IT" },
+  { name: "CS" },
+  { name: "CSIT" },
+  { name: "AIML" },
+  { name: "ECE" },
+  { name: "ME" },
+  { name: "CE" }
+];
+
+const DEFAULT_BRANCH_SECS_MAP = {
+  IT: [{ branch: "IT", sections: ["1", "2"] }, { branch: "DS", sections: ["1"] }],
+  CS: [{ branch: "CS", sections: ["1"] }],
+  CSIT: [{ branch: "CSIT", sections: ["1"] }],
+  AIML: [{ branch: "AIML", sections: ["1"] }],
+  ECE: [{ branch: "ECE", sections: ["1"] }],
+  ME: [{ branch: "ME", sections: ["1"] }],
+  CE: [{ branch: "CE", sections: ["1"] }]
+};
+
+async function seedDefaultDepartments() {
+  try {
+    const { data: createdDepts, error } = await supabaseClient
+      .from("departments")
+      .insert(DEFAULT_DEPTS)
+      .select();
+      
+    if (error) {
+      console.warn("Seeding departments failed (expected if not signed in):", error.message);
+      return false;
+    }
+    
+    if (createdDepts && createdDepts.length > 0) {
+      const defaultBranchSecs = [];
+      const deptMap = {};
+      createdDepts.forEach((d) => {
+        deptMap[d.name] = d.id;
+      });
+      
+      for (const [deptName, branches] of Object.entries(DEFAULT_BRANCH_SECS_MAP)) {
+        const deptId = deptMap[deptName];
+        if (!deptId) continue;
+        
+        for (const b of branches) {
+          for (const year of ["1st", "2nd", "3rd", "4th"]) {
+            for (const sec of b.sections) {
+              defaultBranchSecs.push({
+                department_id: deptId,
+                branch: b.branch,
+                year: year,
+                section: sec
+              });
+            }
+          }
+        }
+      }
+      
+      const { error: branchError } = await supabaseClient
+        .from("branch_sections")
+        .insert(defaultBranchSecs);
+        
+      if (branchError) {
+        console.warn("Seeding branch sections failed:", branchError.message);
+      }
+      return true;
+    }
+  } catch (e) {
+    console.error("Seeding error:", e);
+  }
+  return false;
+}
+
+window.getDeptBranches = (deptName) => {
+  if (!currentState.branchSections || !currentState.departments) {
+    return [deptName];
+  }
+  const dept = currentState.departments.find(d => d.name === deptName);
+  if (!dept) {
+    const map = DEFAULT_BRANCH_SECS_MAP[deptName];
+    if (map) return map.map(m => m.branch);
+    return [deptName];
+  }
+  const branches = [
+    ...new Set(
+      currentState.branchSections
+        .filter((bs) => bs.department_id === dept.id)
+        .map((bs) => bs.branch)
+    )
+  ];
+  return branches.length > 0 ? branches : [deptName];
+};
+
 async function loadAllData() {
-  const [t, s, c, tt, sub, st, mstS, mstTt, mstM] = await Promise.all([
+  const [t, s, c, tt, sub, st, mstS, mstTt, mstM, depts, branchSecs] = await Promise.all([
     supabaseClient.from("teachers").select("*"),
     supabaseClient.from("subjects").select("*"),
     supabaseClient.from("classes").select("*"),
@@ -118,6 +203,8 @@ async function loadAllData() {
     supabaseClient.from("mst_settings").select("*"),
     supabaseClient.from("mst_timetable").select("*, subjects(*), classes(*)"),
     supabaseClient.from("mst_marks").select("*, students(*), subjects(*)"),
+    supabaseClient.from("departments").select("*"),
+    supabaseClient.from("branch_sections").select("*"),
   ]);
 
   currentState.teachers = t.data || [];
@@ -131,6 +218,45 @@ async function loadAllData() {
   currentState.mstSettings = mstS.data || [];
   currentState.mstTimetable = mstTt.data || [];
   currentState.mstMarks = mstM.data || [];
+
+  // Seeding/Loading logic
+  let loadedDepts = depts.data || [];
+  let loadedBranchSecs = branchSecs.data || [];
+
+  if (loadedDepts.length === 0) {
+    // Attempt database seed (will work if user is authenticated, or will print warning)
+    const seedSuccess = await seedDefaultDepartments();
+    if (seedSuccess) {
+      const freshDepts = await supabaseClient.from("departments").select("*");
+      const freshBranchSecs = await supabaseClient.from("branch_sections").select("*");
+      loadedDepts = freshDepts.data || [];
+      loadedBranchSecs = freshBranchSecs.data || [];
+    } else {
+      // Memory fallback if seed failed (e.g. public access write block)
+      loadedDepts = DEFAULT_DEPTS.map((d, index) => ({ id: `mem-id-${index}`, name: d.name }));
+      const memoryBranchSecs = [];
+      loadedDepts.forEach((d) => {
+        const branches = DEFAULT_BRANCH_SECS_MAP[d.name] || [];
+        branches.forEach((b) => {
+          for (const year of ["1st", "2nd", "3rd", "4th"]) {
+            for (const sec of b.sections) {
+              memoryBranchSecs.push({
+                id: `mem-bs-${d.name}-${b.branch}-${year}-${sec}`,
+                department_id: d.id,
+                branch: b.branch,
+                year: year,
+                section: sec
+              });
+            }
+          }
+        });
+      });
+      loadedBranchSecs = memoryBranchSecs;
+    }
+  }
+
+  currentState.departments = loadedDepts;
+  currentState.branchSections = loadedBranchSecs;
 }
 function renderLogin() {
   const app = document.getElementById("app");
@@ -2337,7 +2463,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                     </div>`
                         : ""
                     }
-                    <div class="nav-item ${["subjects", "classes", "timetable"].includes(currentState.view) ? "active" : ""}" onclick="window.toggleSubmenu('academics')">
+                    <div class="nav-item ${["subjects", "classes", "departments", "timetable"].includes(currentState.view) ? "active" : ""}" onclick="window.toggleSubmenu('academics')">
                         <span class="nav-item-content"><i data-lucide="graduation-cap"></i> Academics</span>
                         <i data-lucide="${isExpanded("academics") ? "chevron-up" : "chevron-down"}" style="width: 14px; height: 14px;"></i>
                     </div>
@@ -2347,6 +2473,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
                     <div class="nav-submenu">
                         <div class="nav-sub-item ${currentState.view === "subjects" ? "active" : ""}" onclick="window.switchView('subjects')">Subjects</div>
                         <div class="nav-sub-item ${currentState.view === "classes" ? "active" : ""}" onclick="window.switchView('classes')">Classes</div>
+                        <div class="nav-sub-item ${currentState.view === "departments" ? "active" : ""}" onclick="window.switchView('departments')">Departments</div>
                         <div class="nav-sub-item ${currentState.view === "timetable" ? "active" : ""}" onclick="window.switchView('timetable')">Timetable</div>
                     </div>`
                         : ""
@@ -2688,6 +2815,9 @@ function renderActiveView() {
         break;
       case "classes":
         renderClasses(container);
+        break;
+      case "departments":
+        renderDepartments(container);
         break;
       case "timetable":
         renderTimetable(container);
@@ -4390,16 +4520,6 @@ window.editAttendance = async (id, currentStatus, sessionId) => {
 function renderAdminScopeSelector() {
   const app = document.getElementById("app");
 
-  const DEPT_CONFIG = {
-    IT: { branches: ["IT", "DS"] },
-    CS: { branches: ["CS"] },
-    CSIT: { branches: ["CSIT"] },
-    AIML: { branches: ["AIML"] },
-    ECE: { branches: ["ECE"] },
-    ME: { branches: ["ME"] },
-    CE: { branches: ["CE"] },
-  };
-
   app.innerHTML = `
         <div class="auth-container" style="flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg-dark);">
             <div class="auth-card" style="width: 100%; max-width: 650px; background: var(--card-bg); border-radius: 1rem; border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); padding: 3rem;">
@@ -4414,12 +4534,7 @@ function renderAdminScopeSelector() {
                         <label style="font-weight: 700; color: var(--text-main);">Choose Department Scope</label>
                         <select id="scope-dept" required style="width:100%; padding:0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); cursor:pointer; font-weight: 600;">
                             <option value="" disabled selected>Select Department</option>
-                            <option value="IT">Information Technology (IT)</option>
-                            <option value="CS">Computer Science (CSE)</option>
-                            <option value="CSIT">CS & IT (CSIT)</option>
-                            <option value="AIML">AI & Machine Learning (AIML)</option>
-                            <option value="ECE">Electronics & Communication (ECE)</option>
-                            <option value="ME">Mechanical Engineering (ME)</option>
+                            ${currentState.departments.map((d) => `<option value="${d.name}">${d.name}</option>`).join("")}
                         </select>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
@@ -4442,7 +4557,7 @@ function renderAdminScopeSelector() {
                     </div>
 
                     <input type="hidden" id="selected-mode" value="admin">
-                    <button type="submit" class="btn-primary" style="width:100%; margin-top: 1rem; padding:1rem; border-radius:0.5rem; font-weight:700;">Enter Portal</button>
+                    <button type="submit" class="btn-primary" style="width: 100%; height: 46px; margin-top: 0.5rem; font-weight: 700; font-size: 1rem; border-radius: 0.5rem;">Enter Dashboard</button>
                 </form>
             </div>
         </div>
@@ -4474,7 +4589,7 @@ function renderAdminScopeSelector() {
       const mode = document.getElementById("selected-mode").value;
       if (dept) {
         currentState.selectedDept = dept;
-        currentState.deptBranches = DEPT_CONFIG[dept]?.branches || [dept];
+        currentState.deptBranches = window.getDeptBranches(dept);
         localStorage.setItem("admin_selected_dept", dept);
 
         if (mode === "hod") {
@@ -5947,16 +6062,7 @@ window.editTeacher = (id) => {
   const t = currentState.teachers.find((teacher) => teacher.id === id);
   if (!t) return;
 
-  const DEPT_CONFIG = {
-    IT: ["IT", "DS"],
-    CS: ["CS"],
-    CSIT: ["CSIT"],
-    AIML: ["AIML"],
-    ECE: ["ECE"],
-    ME: ["ME"],
-    CE: ["CE"],
-  };
-  const branches = DEPT_CONFIG[t.department] || [t.department];
+  const branches = window.getDeptBranches(t.department);
   const deptClasses = currentState.classes.filter((c) =>
     branches.includes(c.branch),
   );
@@ -6184,17 +6290,7 @@ window.closeModal = () => {
 };
 
 window.showAddTeacherModal = () => {
-  const DEPT_CONFIG = {
-    IT: ["IT", "DS"],
-    CS: ["CS"],
-    CSIT: ["CSIT"],
-    AIML: ["AIML"],
-    ECE: ["ECE"],
-    ME: ["ME"],
-    CE: ["CE"],
-  };
-  const dept = currentState.selectedDept || "";
-  const branches = DEPT_CONFIG[dept] || [dept];
+  const branches = window.getDeptBranches(dept);
   const deptClasses = currentState.classes.filter((c) =>
     branches.includes(c.branch),
   );
@@ -11950,7 +12046,7 @@ window.switchCoordMstTab = async (mstName) => {
 
   area.innerHTML = `
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch;">
-            <div>
+            <div style="min-width: 0;">
                 <h4 style="font-weight: 700; color: var(--primary); margin: 0 0 0.75rem 0;">All Students Marks Sheet</h4>
                 <div style="overflow-x: auto; max-height: 400px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
                     <table class="table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
@@ -13258,12 +13354,7 @@ window.showAssignHodModal = () => {
                 <label>Assign Department</label>
                 <select id="hod-assign-dept" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
                     <option value="" disabled selected>Select Department</option>
-                    <option value="IT">Information Technology (IT)</option>
-                    <option value="CS">Computer Science (CSE)</option>
-                    <option value="CSIT">CS & IT (CSIT)</option>
-                    <option value="AIML">AI & Machine Learning (AIML)</option>
-                    <option value="ECE">Electronics & Communication (ECE)</option>
-                    <option value="ME">Mechanical Engineering (ME)</option>
+                    ${currentState.departments.map((d) => `<option value="${d.name}">${d.name}</option>`).join("")}
                 </select>
             </div>
             <button type="submit" class="btn-primary" style="width: 100%; padding: 0.85rem; border-radius: 6px; font-weight: 700;">Confirm Assignment</button>
@@ -13316,6 +13407,262 @@ window.removeHodRole = async (teacherId) => {
       await loadAllData();
       renderManageHods(document.getElementById("main-content"));
     }
+  }
+};
+
+window.renderDepartments = (container) => {
+  const depts = currentState.departments || [];
+  const branchSecs = currentState.branchSections || [];
+
+  container.innerHTML = `
+        <div class="academic-header-bar" style="border: none; background: transparent; padding: 1.5rem 0 0.5rem 0; display: flex; justify-content: space-between; align-items: center; box-shadow: none;">
+            <div class="academic-header-welcome">
+                <h2 style="font-size: 1.85rem; font-weight: 800; color: #0f172a; margin: 0;">Department & Branch Setup</h2>
+                <p style="font-size: 0.9rem; color: #64748b; margin: 0; font-weight: 500;">
+                    Manage institute departments, branch streams, and sections dynamically.
+                </p>
+            </div>
+            <button onclick="window.showAddDepartmentModal()" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; border-radius: 8px; font-weight: 700; padding: 0.65rem 1.25rem;">
+                <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Department
+            </button>
+        </div>
+
+        <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="building" style="color: var(--primary);"></i>
+                Registered Departments
+            </h3>
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 700;">
+                            <th style="padding: 0.85rem;">Department Name</th>
+                            <th style="padding: 0.85rem;">Branches</th>
+                            <th style="padding: 0.85rem; text-align: center;">Total Branch Sections</th>
+                            <th style="padding: 0.85rem; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${
+                          depts.length > 0
+                            ? depts
+                                .map((d) => {
+                                  const branches = window.getDeptBranches(d.name);
+                                  const totalSecs = branchSecs.filter(
+                                    (bs) => bs.department_id === d.id,
+                                  ).length;
+
+                                  return `
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 0.85rem; font-weight: 700; color: var(--text-main);">${d.name}</td>
+                                <td style="padding: 0.85rem;">
+                                    ${branches
+                                      .map(
+                                        (b) => `
+                                        <span style="padding: 0.2rem 0.5rem; background: rgba(45,212,191,0.08); color: var(--accent); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px; font-size: 0.72rem; font-weight: 700; margin-right: 0.25rem; display: inline-block;">
+                                            ${b}
+                                        </span>
+                                    `,
+                                      )
+                                      .join("")}
+                                </td>
+                                <td style="padding: 0.85rem; text-align: center; font-weight: 700; color: var(--text-main);">${totalSecs}</td>
+                                <td style="padding: 0.85rem; text-align: right;">
+                                    <button onclick="window.deleteDepartment('${d.id}')" class="btn-secondary" style="color: var(--error); border-color: var(--error); padding: 0.4rem 0.85rem; font-size: 0.78rem; border-radius: 6px; font-weight: 600;">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                                })
+                                .join("")
+                            : `
+                            <tr>
+                                <td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                                    No departments configured yet. Click "+ Add Department" to create one.
+                                </td>
+                            </tr>
+                        `
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+  lucide.createIcons();
+};
+
+window.showAddDepartmentModal = () => {
+  showModal(
+    "Add New Department",
+    `
+        <form id="add-dept-form">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Department Name</label>
+                <input type="text" id="dept-name" placeholder="e.g. IT" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+            </div>
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Branches (comma-separated)</label>
+                <input type="text" id="dept-branches" placeholder="e.g. IT, DS" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block;">Number of Sections per Branch</label>
+                <input type="number" id="dept-sections" min="1" max="10" value="1" required style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">This will automatically generate section classes (1st to 4th Year) in the database.</p>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 0.85rem; border-radius: 6px; font-weight: 700;">Save Department</button>
+        </form>
+    `,
+    null,
+    { hideConfirm: true },
+  );
+
+  document
+    .getElementById("add-dept-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("dept-name").value.trim().toUpperCase();
+      const branchesStr = document.getElementById("dept-branches").value.trim();
+      const sectionsCount = parseInt(document.getElementById("dept-sections").value) || 1;
+
+      if (!name || !branchesStr) {
+        showToast("Please fill all required fields", "error");
+        return;
+      }
+
+      const branches = branchesStr
+        .split(",")
+        .map((b) => b.trim().toUpperCase())
+        .filter(Boolean);
+
+      if (branches.length === 0) {
+        showToast("Please enter at least one branch code", "error");
+        return;
+      }
+
+      // Check if department already exists
+      const existing = currentState.departments.find((d) => d.name === name);
+      if (existing) {
+        showToast(`Department "${name}" already exists!`, "error");
+        return;
+      }
+
+      showToast("Configuring department stream...", "info");
+
+      // 1. Insert Department
+      const { data: deptData, error: deptErr } = await supabaseClient
+        .from("departments")
+        .insert({ name })
+        .select()
+        .single();
+
+      if (deptErr) {
+        showToast(deptErr.message, "error");
+        return;
+      }
+
+      // 2. Generate branch sections and core classes
+      const newBranchSecs = [];
+      const newClasses = [];
+      const years = ["1st", "2nd", "3rd", "4th"];
+
+      branches.forEach((branch) => {
+        for (let s = 1; s <= sectionsCount; s++) {
+          const secName = String(s);
+          years.forEach((year) => {
+            newBranchSecs.push({
+              department_id: deptData.id,
+              branch: branch,
+              year: year,
+              section: secName,
+            });
+            newClasses.push({
+              branch: branch,
+              year: year,
+              section: secName,
+            });
+          });
+        }
+      });
+
+      // 3. Insert Branch Sections
+      const { error: bsErr } = await supabaseClient
+        .from("branch_sections")
+        .insert(newBranchSecs);
+
+      if (bsErr) {
+        showToast(bsErr.message, "error");
+        return;
+      }
+
+      // 4. Insert Classes
+      const { error: clErr } = await supabaseClient
+        .from("classes")
+        .insert(newClasses);
+
+      if (clErr) {
+        showToast(clErr.message, "error");
+        return;
+      }
+
+      showToast("Department, branches, and classes generated!");
+      closeModal();
+      await loadAllData();
+      window.renderDepartments(document.getElementById("main-content"));
+    });
+};
+
+window.deleteDepartment = async (deptId) => {
+  const dept = currentState.departments.find((d) => d.id === deptId);
+  if (!dept) return;
+
+  if (
+    confirm(
+      `Are you sure you want to delete department "${dept.name}"? This will delete all branches, sections, and associated classes from the database.`,
+    )
+  ) {
+    showToast("Deleting department configuration...", "info");
+
+    const branches = window.getDeptBranches(dept.name);
+
+    // 1. Delete branch sections
+    const { error: bsErr } = await supabaseClient
+      .from("branch_sections")
+      .delete()
+      .eq("department_id", deptId);
+
+    if (bsErr) {
+      showToast(bsErr.message, "error");
+      return;
+    }
+
+    // 2. Delete classes
+    if (branches.length > 0) {
+      const { error: clErr } = await supabaseClient
+        .from("classes")
+        .delete()
+        .in("branch", branches);
+
+      if (clErr) {
+        showToast(clErr.message, "error");
+        return;
+      }
+    }
+
+    // 3. Delete department
+    const { error: deptErr } = await supabaseClient
+      .from("departments")
+      .delete()
+      .eq("id", deptId);
+
+    if (deptErr) {
+      showToast(deptErr.message, "error");
+      return;
+    }
+
+    showToast("Department configuration removed successfully.");
+    await loadAllData();
+    window.renderDepartments(document.getElementById("main-content"));
   }
 };
 window.init3DTilt = () => {};
