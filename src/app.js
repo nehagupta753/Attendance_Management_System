@@ -13437,7 +13437,6 @@ window.renderDepartments = (container) => {
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 700;">
                             <th style="padding: 0.85rem;">Department Name</th>
-                            <th style="padding: 0.85rem;">Branches</th>
                             <th style="padding: 0.85rem; text-align: center;">Branch Sections</th>
                             <th style="padding: 0.85rem; text-align: right;">Actions</th>
                         </tr>
@@ -13460,17 +13459,6 @@ window.renderDepartments = (container) => {
                                   return `
                             <tr style="border-bottom: 1px solid var(--border);">
                                 <td style="padding: 0.85rem; font-weight: 700; color: var(--text-main);">${d.name}</td>
-                                <td style="padding: 0.85rem;">
-                                    ${branches
-                                      .map(
-                                        (b) => `
-                                        <span style="padding: 0.2rem 0.5rem; background: rgba(45,212,191,0.08); color: var(--accent); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px; font-size: 0.72rem; font-weight: 700; margin-right: 0.25rem; display: inline-block;">
-                                            ${b}
-                                        </span>
-                                    `,
-                                      )
-                                      .join("")}
-                                </td>
                                 <td style="padding: 0.85rem; text-align: center; font-weight: 700; color: var(--text-main);">${secsText || "N/A"}</td>
                                 <td style="padding: 0.85rem; text-align: right;">
                                     <button onclick="window.showEditDepartmentModal('${d.id}')" class="btn-secondary" style="margin-right: 0.5rem; color: var(--primary); border-color: var(--primary); padding: 0.4rem 0.85rem; font-size: 0.78rem; border-radius: 6px; font-weight: 600;">
@@ -13486,7 +13474,7 @@ window.renderDepartments = (container) => {
                                 .join("")
                             : `
                             <tr>
-                                <td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                                <td colspan="3" style="padding: 3rem; text-align: center; color: var(--text-muted);">
                                     No departments configured yet. Click "+ Add Department" to create one.
                                 </td>
                             </tr>
@@ -13792,14 +13780,34 @@ window.showEditDepartmentModal = (deptId) => {
 
       // Identify classes to delete
       const classesToDelete = [];
-      existingClasses.forEach((ec) => {
+      for (const ec of existingClasses) {
         const match = targetClasses.find(
           (tc) => tc.branch === ec.branch && tc.year === ec.year && tc.section === ec.section
         );
         if (!match) {
-          classesToDelete.push(ec);
+          // Check if this class has any associated data to avoid losing/removing it
+          const { count: studCount } = await supabaseClient
+            .from("students")
+            .select("*", { count: "exact", head: true })
+            .eq("class_id", ec.id);
+            
+          const { count: ttCount } = await supabaseClient
+            .from("timetable")
+            .select("*", { count: "exact", head: true })
+            .eq("class_id", ec.id);
+            
+          const { count: attCount } = await supabaseClient
+            .from("attendance_submissions")
+            .select("*", { count: "exact", head: true })
+            .eq("class_id", ec.id);
+
+          if ((studCount || 0) > 0 || (ttCount || 0) > 0 || (attCount || 0) > 0) {
+            console.log(`Keeping class ${ec.branch} ${ec.year} Sec ${ec.section} because it contains data.`);
+          } else {
+            classesToDelete.push(ec);
+          }
         }
-      });
+      }
 
       // 2. Delete old branch sections
       const { error: delBsErr } = await supabaseClient
