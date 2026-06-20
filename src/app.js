@@ -12605,6 +12605,10 @@ window.renderHodDashboard = async (container) => {
     console.error("Error fetching HOD stats:", err);
   }
 
+  currentState.filteredStudents = filteredStudents;
+  currentState.filteredClasses = filteredClasses;
+  currentState.cumulativeRecords = cumulativeRecords;
+
   // Filter student IDs and records based on active HOD branch/section filters
   const activeStudentIds = filteredStudents
     .filter((s) => {
@@ -13015,10 +13019,27 @@ window.renderHodDashboard = async (container) => {
                     <i data-lucide="book-open" style="width: 16px; height: 16px; color: #10b981;"></i>
                     Subject-wise Attendance
                 </h3>
-                <select id="hod-subject-section-select" onchange="window.renderHodSubjectChart(this.value)" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
-                    ${classesWithData.map((cl, i) => `<option value="${cl.id}" ${i === 0 ? "selected" : ""}>${cl.branch} ${cl.year}-${cl.section}</option>`).join("")}
-                    ${classesWithData.length === 0 ? '<option value="">No sections with data</option>' : ''}
-                </select>
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                    <select id="hod-subject-branch-select" onchange="window.renderHodSubjectChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Branches</option>
+                        ${deptBranches.map((b) => `<option value="${b}">${b}</option>`).join("")}
+                    </select>
+                    <select id="hod-subject-year-select" onchange="window.renderHodSubjectChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Years</option>
+                        <option value="1st">1st Year</option>
+                        <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
+                    </select>
+                    <select id="hod-subject-section-select" onchange="window.renderHodSubjectChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Sections</option>
+                        <option value="1">Sec 1</option>
+                        <option value="2">Sec 2</option>
+                        <option value="3">Sec 3</option>
+                        <option value="4">Sec 4</option>
+                        <option value="5">Sec 5</option>
+                    </select>
+                </div>
             </div>
             <div style="height: 240px; position: relative; width: 100%;">
                 <canvas id="hod-subject-chart"></canvas>
@@ -13178,9 +13199,25 @@ window.renderHodDashboard = async (container) => {
                     <i data-lucide="award" style="width: 16px; height: 16px; color: #f59e0b;"></i>
                     Subject-wise MST Performance
                 </h3>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <select id="hod-mst-branch-select" onchange="window.renderHodMstChart(this.value)" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
-                        ${deptBranches.map((b, i) => `<option value="${b}" ${i === 0 ? "selected" : ""}>${b}</option>`).join("")}
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                    <select id="hod-mst-branch-select" onchange="window.renderHodMstChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Branches</option>
+                        ${deptBranches.map((b) => `<option value="${b}">${b}</option>`).join("")}
+                    </select>
+                    <select id="hod-mst-year-select" onchange="window.renderHodMstChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Years</option>
+                        <option value="1st">1st Year</option>
+                        <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
+                    </select>
+                    <select id="hod-mst-section-select" onchange="window.renderHodMstChart()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="">All Sections</option>
+                        <option value="1">Sec 1</option>
+                        <option value="2">Sec 2</option>
+                        <option value="3">Sec 3</option>
+                        <option value="4">Sec 4</option>
+                        <option value="5">Sec 5</option>
                     </select>
                     <button onclick="window.showHodMstDetailsModal()" style="background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text-main); font-size:0.75rem; padding:0.3rem 0.75rem; cursor:pointer; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='var(--bg-dark)'" onmouseout="this.style.background='transparent'">View Details</button>
                 </div>
@@ -13196,11 +13233,36 @@ window.renderHodDashboard = async (container) => {
 
   // === Interactive chart renderers ===
   window._hodSubjectChartInstance = null;
-  window.renderHodSubjectChart = (classId) => {
+  window.renderHodSubjectChart = () => {
     const canvas = document.getElementById("hod-subject-chart");
     if (!canvas) return;
     if (window._hodSubjectChartInstance) window._hodSubjectChartInstance.destroy();
-    const data = window._hodSubjectData[classId];
+
+    const selectedBranch = document.getElementById("hod-subject-branch-select")?.value || "";
+    const selectedYear = document.getElementById("hod-subject-year-select")?.value || "";
+    const selectedSection = document.getElementById("hod-subject-section-select")?.value || "";
+
+    const matchingClasses = (currentState.filteredClasses || []).filter((cl) => {
+        return (!selectedBranch || cl.branch === selectedBranch) &&
+               (!selectedYear || cl.year === selectedYear) &&
+               (!selectedSection || String(cl.section) === selectedSection);
+    });
+    const matchingClassIds = matchingClasses.map((c) => c.id);
+
+    const clRecords = (currentState.cumulativeRecords || []).filter((r) => matchingClassIds.includes(r.class_id));
+    const subIds = [...new Set(clRecords.map((r) => r.subject_id))];
+    const subjects = subIds.map((subId) => {
+      const sub = currentState.subjects.find((s) => s.id === subId);
+      const subRecords = clRecords.filter((r) => r.subject_id === subId);
+      const pres = subRecords.filter((r) => r.status === "Present").length;
+      return {
+        name: sub?.name || "Unknown",
+        code: sub?.code || "N/A",
+        pct: Math.round((pres / subRecords.length) * 100),
+        total: subRecords.length,
+      };
+    });
+
     const subColors = [
       "rgba(99,102,241,0.7)", "rgba(16,185,129,0.7)", "rgba(245,158,11,0.7)",
       "rgba(236,72,153,0.7)", "rgba(139,92,246,0.7)", "rgba(59,130,246,0.7)",
@@ -13210,22 +13272,24 @@ window.renderHodDashboard = async (container) => {
       "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6",
       "#ea580c", "#0ea5e9", "#a855f7",
     ];
-    if (!data || data.subjects.length === 0) {
+
+    if (subjects.length === 0) {
       window._hodSubjectChartInstance = new Chart(canvas.getContext("2d"), {
         type: "bar", data: { labels: ["No data"], datasets: [{ label: "%", data: [0], backgroundColor: ["rgba(0,0,0,0.1)"] }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100 } } },
       });
       return;
     }
+
     window._hodSubjectChartInstance = new Chart(canvas.getContext("2d"), {
       type: "bar",
       data: {
-        labels: data.subjects.map((s) => s.name.length > 18 ? (s.code !== "N/A" ? s.code : s.name.substring(0, 18)) : s.name),
+        labels: subjects.map((s) => s.name.length > 18 ? (s.code !== "N/A" ? s.code : s.name.substring(0, 18)) : s.name),
         datasets: [{
           label: "Attendance %",
-          data: data.subjects.map((s) => s.pct),
-          backgroundColor: data.subjects.map((_, i) => subColors[i % subColors.length]),
-          borderColor: data.subjects.map((_, i) => subBorders[i % subBorders.length]),
+          data: subjects.map((s) => s.pct),
+          backgroundColor: subjects.map((_, i) => subColors[i % subColors.length]),
+          borderColor: subjects.map((_, i) => subBorders[i % subBorders.length]),
           borderWidth: 1.5, borderRadius: 6, borderSkipped: false,
         }],
       },
@@ -13233,7 +13297,7 @@ window.renderHodDashboard = async (container) => {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { afterLabel: (ctx) => `Based on ${data.subjects[ctx.dataIndex]?.total || 0} records` } },
+          tooltip: { callbacks: { afterLabel: (ctx) => `Based on ${subjects[ctx.dataIndex]?.total || 0} records` } },
         },
         scales: {
           y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
@@ -13244,26 +13308,64 @@ window.renderHodDashboard = async (container) => {
   };
 
   window._hodMstChartInstance = null;
-  window.renderHodMstChart = (branch) => {
+  window.renderHodMstChart = () => {
     const canvas = document.getElementById("hod-mst-chart");
     if (!canvas) return;
     if (window._hodMstChartInstance) window._hodMstChartInstance.destroy();
-    const data = window._hodMstData[branch];
-    if (!data || data.labels.length === 0) {
+
+    const selectedBranch = document.getElementById("hod-mst-branch-select")?.value || "";
+    const selectedYear = document.getElementById("hod-mst-year-select")?.value || "";
+    const selectedSection = document.getElementById("hod-mst-section-select")?.value || "";
+
+    const matchingStudents = (currentState.filteredStudents || []).filter((s) => {
+        return (!selectedBranch || s.branch === selectedBranch) &&
+               (!selectedYear || s.year === selectedYear) &&
+               (!selectedSection || String(s.section) === selectedSection);
+    });
+    const studentIds = matchingStudents.map((s) => s.id);
+
+    const matchingClasses = (currentState.filteredClasses || []).filter((cl) => {
+        return (!selectedBranch || cl.branch === selectedBranch) &&
+               (!selectedYear || cl.year === selectedYear) &&
+               (!selectedSection || String(cl.section) === selectedSection);
+    });
+    const classIds = matchingClasses.map((c) => c.id);
+
+    const matchingTimetable = (currentState.mstTimetable || []).filter((t) => classIds.includes(t.class_id));
+    const subjectIds = [...new Set(matchingTimetable.map((t) => t.subject_id))];
+    const scheduledSubjects = currentState.subjects.filter((s) => subjectIds.includes(s.id));
+
+    const labels = [];
+    const m1Avgs = [];
+    const m2Avgs = [];
+
+    scheduledSubjects.forEach((sub) => {
+      labels.push(sub.name.length > 18 ? (sub.code || sub.name.substring(0, 18)) : sub.name);
+      const marks = (currentState.mstMarks || []).filter(
+        (m) => m.subject_id === sub.id && !m.is_absent && studentIds.includes(m.student_id),
+      );
+      const mst1 = marks.filter((m) => m.mst_name === "mst-1");
+      const mst2 = marks.filter((m) => m.mst_name === "mst-2");
+      m1Avgs.push(mst1.length > 0 ? parseFloat((mst1.reduce((s, m) => s + parseFloat(m.marks || 0), 0) / mst1.length).toFixed(1)) : 0);
+      m2Avgs.push(mst2.length > 0 ? parseFloat((mst2.reduce((s, m) => s + parseFloat(m.marks || 0), 0) / mst2.length).toFixed(1)) : 0);
+    });
+
+    if (labels.length === 0) {
       window._hodMstChartInstance = new Chart(canvas.getContext("2d"), {
-        type: "bar", data: { labels: ["No MST data for " + branch], datasets: [{ label: "Avg", data: [0], backgroundColor: ["rgba(0,0,0,0.1)"] }] },
+        type: "bar", data: { labels: ["No MST data"], datasets: [{ label: "Avg", data: [0], backgroundColor: ["rgba(0,0,0,0.1)"] }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 20 } } },
       });
       return;
     }
+
     const maxMarks = (currentState.mstSettings || []).reduce((m, s) => Math.max(m, parseFloat(s.total_marks || 20)), 20);
     window._hodMstChartInstance = new Chart(canvas.getContext("2d"), {
       type: "bar",
       data: {
-        labels: data.labels,
+        labels: labels,
         datasets: [
-          { label: "MST 1 Avg", data: data.m1Avgs, backgroundColor: "rgba(59,130,246,0.7)", borderColor: "#3b82f6", borderWidth: 1.5, borderRadius: 4 },
-          { label: "MST 2 Avg", data: data.m2Avgs, backgroundColor: "rgba(249,115,22,0.7)", borderColor: "#f97316", borderWidth: 1.5, borderRadius: 4 },
+          { label: "MST 1 Avg", data: m1Avgs, backgroundColor: "rgba(59,130,246,0.7)", borderColor: "#3b82f6", borderWidth: 1.5, borderRadius: 4 },
+          { label: "MST 2 Avg", data: m2Avgs, backgroundColor: "rgba(249,115,22,0.7)", borderColor: "#f97316", borderWidth: 1.5, borderRadius: 4 },
         ],
       },
       options: {
@@ -13329,17 +13431,9 @@ window.renderHodDashboard = async (container) => {
       });
     }
 
-    // ===== Subject-wise: render first section by default =====
-    if (classesWithData.length > 0) {
-      window.renderHodSubjectChart(classesWithData[0].id);
-    } else {
-      window.renderHodSubjectChart("");
-    }
-
-    // ===== MST: render first branch by default =====
-    if (deptBranches.length > 0) {
-      window.renderHodMstChart(deptBranches[0]);
-    }
+    // ===== Render dynamic charts initially =====
+    window.renderHodSubjectChart();
+    window.renderHodMstChart();
   }, 100);
 };
 
