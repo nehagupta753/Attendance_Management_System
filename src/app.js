@@ -11312,7 +11312,15 @@ window.loadMstStudentList = async () => {
                             <th style="padding: 0.75rem; width: 80px;">S.No.</th>
                             <th style="padding: 0.75rem; width: 150px;">Roll No</th>
                             <th style="padding: 0.75rem;">Student Name</th>
-                            <th style="padding: 0.75rem; width: 150px; text-align: center;">Absent</th>
+                            <th style="padding: 0.75rem; width: 150px; text-align: center;">
+                                Absent
+                                <div style="margin-top: 0.15rem; display: flex; justify-content: center; align-items: center;">
+                                    <label style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; font-weight: normal; cursor: pointer; color: var(--text-muted); margin: 0;">
+                                        <input type="checkbox" id="mst-bulk-absent" onchange="window.toggleMstBulkAbsent(this.checked)" style="width: auto; height: auto; margin: 0; cursor: pointer;">
+                                        <span>All</span>
+                                    </label>
+                                </div>
+                            </th>
                             <th style="padding: 0.75rem; width: 200px;">Marks Obtained</th>
                         </tr>
                     </thead>
@@ -11383,6 +11391,14 @@ window.toggleMstAbsent = (checkbox, studentId) => {
       input.value = "";
     }
   }
+};
+
+window.toggleMstBulkAbsent = (isChecked) => {
+  const checkboxes = document.querySelectorAll(".mst-absent-chk");
+  checkboxes.forEach((cb) => {
+    cb.checked = isChecked;
+    window.toggleMstAbsent(cb, cb.getAttribute("data-student-id"));
+  });
 };
 
 window.submitMstMarks = async () => {

@@ -1361,7 +1361,25 @@ button {
      ══════════════════════════════════════════════════════════════ */
   /* Coord/Admin stat card rows with auto-fit minmax(180px) */
   [style*="minmax(180px"] {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  [style*="minmax(180px"] > .card {
+    padding: 0.5rem 0.65rem !important;
+  }
+  [style*="minmax(180px"] > .card i,
+  [style*="minmax(180px"] > .card svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  [style*="minmax(180px"] > .card div {
+    font-size: 1.15rem !important;
+    margin-top: 0.35rem !important;
+    line-height: 1.1 !important;
+  }
+  [style*="minmax(180px"] > .card span {
+    font-size: 0.55rem !important;
+    white-space: nowrap !important;
   }
 
   /* Coord trend tabs — scrollable */
@@ -1570,9 +1588,7 @@ button {
     grid-template-columns: 1fr !important;
   }
 
-  [style*="minmax(180px"] {
-    grid-template-columns: 1fr !important;
-  }
+
 
   .db-pill-grid {
     grid-template-columns: repeat(2, 1fr) !important;
