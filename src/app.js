@@ -12381,12 +12381,7 @@ window.renderHodDashboard = async (container) => {
       "IT";
     currentState.hodDept = activeDept;
   }
-  const deptBranches =
-    activeDept === "IT"
-      ? ["IT", "DS"]
-      : activeDept === "CS"
-        ? ["CS"]
-        : ["CSIT"];
+  const deptBranches = window.getDeptBranches(activeDept);
 
   const filteredStudents = currentState.students.filter((s) =>
     deptBranches.includes(s.branch),
@@ -12438,7 +12433,7 @@ window.renderHodDashboard = async (container) => {
     ).length;
     todayPct = ((cumPresent / cumulativeRecords.length) * 100).toFixed(1);
   } else {
-    todayPct = "85.5";
+    todayPct = "0.0";
   }
   const sectionLabels = filteredClasses.map(
     (cl) => `${cl.branch} ${cl.year}-${cl.section}`,
@@ -12449,7 +12444,7 @@ window.renderHodDashboard = async (container) => {
       const pres = clRecords.filter((r) => r.status === "Present").length;
       return Math.round((pres / clRecords.length) * 100);
     } else {
-      return 85;
+      return 0;
     }
   });
   const subjectsInDept = currentState.subjects
@@ -12466,7 +12461,7 @@ window.renderHodDashboard = async (container) => {
       const pres = subRecords.filter((r) => r.status === "Present").length;
       return Math.round((pres / subRecords.length) * 100);
     } else {
-      return 85;
+      return 0;
     }
   });
   const currentAchievements = [];
