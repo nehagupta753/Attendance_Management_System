@@ -13438,7 +13438,7 @@ window.renderDepartments = (container) => {
                         <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 700;">
                             <th style="padding: 0.85rem;">Department Name</th>
                             <th style="padding: 0.85rem;">Branches</th>
-                            <th style="padding: 0.85rem; text-align: center;">Total Branch Sections</th>
+                            <th style="padding: 0.85rem; text-align: center;">Branch Sections</th>
                             <th style="padding: 0.85rem; text-align: right;">Actions</th>
                         </tr>
                     </thead>
@@ -13448,9 +13448,14 @@ window.renderDepartments = (container) => {
                             ? depts
                                 .map((d) => {
                                   const branches = window.getDeptBranches(d.name);
-                                  const totalSecs = branchSecs.filter(
-                                    (bs) => bs.department_id === d.id,
-                                  ).length;
+                                  const secsText = branches.map((b) => {
+                                    const secsForBranch = [...new Set(
+                                      branchSecs
+                                        .filter((bs) => bs.department_id === d.id && bs.branch === b)
+                                        .map((bs) => bs.section)
+                                    )];
+                                    return `${b}: ${secsForBranch.length}`;
+                                  }).join(", ");
 
                                   return `
                             <tr style="border-bottom: 1px solid var(--border);">
@@ -13466,7 +13471,7 @@ window.renderDepartments = (container) => {
                                       )
                                       .join("")}
                                 </td>
-                                <td style="padding: 0.85rem; text-align: center; font-weight: 700; color: var(--text-main);">${totalSecs}</td>
+                                <td style="padding: 0.85rem; text-align: center; font-weight: 700; color: var(--text-main);">${secsText || "N/A"}</td>
                                 <td style="padding: 0.85rem; text-align: right;">
                                     <button onclick="window.showEditDepartmentModal('${d.id}')" class="btn-secondary" style="margin-right: 0.5rem; color: var(--primary); border-color: var(--primary); padding: 0.4rem 0.85rem; font-size: 0.78rem; border-radius: 6px; font-weight: 600;">
                                         Edit
@@ -13747,9 +13752,8 @@ window.showEditDepartmentModal = (deptId) => {
 
       showToast("Updating department configuration...", "info");
 
-      // 1. Resolve old and new branches
+      // 1. Resolve old branches
       const oldBranches = branches;
-      const newBranches = newBranches; // this refers to newBranches scoped inside form submit
 
       // Fetch all existing classes for these old branches
       const { data: existingClasses, error: getClErr } = await supabaseClient
