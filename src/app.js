@@ -1531,15 +1531,30 @@ window.renderStudentLayout = async () => {
                             <div style="display:flex; flex-direction:column; gap:1.25rem;">
                                 <div class="form-group">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom: 0.5rem; display: block;">Current Password</label>
-                                    <input type="password" id="stu-change-current-password" placeholder="Enter current password" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input type="password" id="stu-change-current-password" placeholder="Enter current password" style="padding:0.65rem 2.5rem 0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                        <button type="button" onclick="window.togglePasswordVisibility('stu-change-current-password', this)" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #64748b; padding: 0;">
+                                            <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom: 0.5rem; display: block;">New Password</label>
-                                    <input type="password" id="stu-change-new-password" placeholder="Enter new password" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input type="password" id="stu-change-new-password" placeholder="Enter new password" style="padding:0.65rem 2.5rem 0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                        <button type="button" onclick="window.togglePasswordVisibility('stu-change-new-password', this)" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #64748b; padding: 0;">
+                                            <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom: 0.5rem; display: block;">Confirm New Password</label>
-                                    <input type="password" id="stu-change-confirm-password" placeholder="Confirm new password" style="padding:0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input type="password" id="stu-change-confirm-password" placeholder="Confirm new password" style="padding:0.65rem 2.5rem 0.65rem 0.75rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:0.5rem; color:var(--text-main); font-family:inherit; width:100%;">
+                                        <button type="button" onclick="window.togglePasswordVisibility('stu-change-confirm-password', this)" style="position: absolute; right: 0.75rem; background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #64748b; padding: 0;">
+                                            <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="stu-change-password-error" style="color: var(--error); font-size: 0.8rem; font-weight: 600; display: none; margin-bottom: 0.5rem;"></div>
                                 
@@ -1657,6 +1672,25 @@ window.switchStudentTab = (tab) => {
   } else if (tab === "changepassword") {
     btnChangePassword?.classList.add("active");
     if (contentChangePassword) contentChangePassword.style.display = "block";
+  }
+};
+
+window.togglePasswordVisibility = function(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const icon = btnEl.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'eye-off');
+      lucide.createIcons();
+    }
+  } else {
+    input.type = 'password';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'eye');
+      lucide.createIcons();
+    }
   }
 };
 
