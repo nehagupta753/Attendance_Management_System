@@ -870,9 +870,9 @@ window.renderStudentLayout = async () => {
     const student = currentState.studentData;
 
     app.innerHTML = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:1.5rem; background:var(--bg-dark);">
-                <div style="border: 4px solid var(--border); border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
-                <div style="color:var(--text-muted); font-size:1.1rem; font-weight:500;">Retrieving your attendance records...</div>
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:1.5rem; background:var(--bg-dark); padding: 2rem; box-sizing: border-box; text-align:center;">
+                <div style="border: 4px solid var(--border); border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <div style="color:var(--text-muted); font-size:1.1rem; font-weight:500; text-align:center; width:100%; max-width: 400px; margin: 0 auto; word-wrap: break-word;">Retrieving your attendance records...</div>
             </div>
         `;
     const { data: classObj, error: classErr } = await supabaseClient
