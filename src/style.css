@@ -1438,13 +1438,22 @@ button {
     max-height: 85vh !important;
   }
 
-  /* ── 1st Image: Compact Lecture Cards on Mobile ── */
+  /* ── 1st Image: Compact & Horizontally Scrollable Lecture Cards on Mobile ── */
   .lecture-cards-container {
-    gap: 0.5rem !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    scroll-snap-type: x mandatory !important;
   }
   .lecture-card {
-    padding: 0.65rem 0.85rem !important;
+    flex: 0 0 280px !important;
+    min-width: 280px !important;
+    padding: 0.85rem 1rem !important;
     min-height: 0 !important;
+    scroll-snap-align: start !important;
   }
   .lecture-card > div > div {
     margin-bottom: 0.2rem !important;
