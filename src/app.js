@@ -12553,7 +12553,7 @@ window.renderHodDashboard = async (container) => {
       const teacherName =
         currentState.teachers.find((tch) => tch.id === t.teacher_id)?.name ||
         "Faculty";
-      return { ...t, className, branchName, sectionName, teacherName };
+      return { ...t, className, branchName, sectionName, subjectCode, teacherName };
     });
 
   const filteredSlots = deptSlots.filter((slot) => {
