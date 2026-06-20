@@ -4748,6 +4748,13 @@ window.changeScopedDept = (deptName) => {
   renderMainLayout();
 };
 
+window.onHodFilterChange = () => {
+  const b = document.getElementById("hod-filter-branch")?.value || "";
+  const s = document.getElementById("hod-filter-section")?.value || "";
+  currentState.hodFilters = { branch: b, section: s };
+  window.renderHodDashboard(document.getElementById("main-content"));
+};
+
 function startLiveClock() {
   if (window.liveClockInterval) {
     clearInterval(window.liveClockInterval);
@@ -12383,6 +12390,12 @@ window.renderHodDashboard = async (container) => {
   }
   const deptBranches = window.getDeptBranches(activeDept);
 
+  if (!currentState.hodFilters) {
+    currentState.hodFilters = { branch: "", section: "" };
+  }
+  const hBranch = currentState.hodFilters.branch;
+  const hSection = currentState.hodFilters.section;
+
   const filteredStudents = currentState.students.filter((s) =>
     deptBranches.includes(s.branch),
   );
@@ -12511,17 +12524,23 @@ window.renderHodDashboard = async (container) => {
         ? `${classInfo.branch} ${classInfo.year}-${classInfo.section}`
         : "Class";
       const branchName = classInfo ? classInfo.branch : "Unknown";
+      const sectionName = classInfo ? String(classInfo.section) : "";
       const subjectCode =
         currentState.subjects.find((sub) => sub.id === t.subject_id)?.code ||
         "SUB";
       const teacherName =
         currentState.teachers.find((tch) => tch.id === t.teacher_id)?.name ||
         "Faculty";
-      return { ...t, className, branchName, subjectCode, teacherName };
+      return { ...t, className, branchName, sectionName, teacherName };
     });
 
+  const filteredSlots = deptSlots.filter((slot) => {
+    return (!hBranch || slot.branchName === hBranch) &&
+           (!hSection || slot.sectionName === hSection);
+  });
+
   const groupedTimetable = {};
-  deptSlots.forEach((s) => {
+  filteredSlots.forEach((s) => {
     const b = s.branchName;
     const c = s.className;
     if (!groupedTimetable[b]) {
@@ -12547,11 +12566,16 @@ window.renderHodDashboard = async (container) => {
   scheduledSubjects.forEach((sub) => {
     mstSubjectLabels.push(sub.name);
 
+    const mstStudents = filteredStudents.filter((s) => {
+      return (!hBranch || s.branch === hBranch) &&
+             (!hSection || String(s.section) === hSection);
+    });
+
     const subjectMstMarks = currentState.mstMarks.filter(
       (m) =>
         m.subject_id === sub.id &&
         !m.is_absent &&
-        filteredStudents.some((s) => s.id === m.student_id),
+        mstStudents.some((s) => s.id === m.student_id),
     );
 
     const mst1Marks = subjectMstMarks.filter((m) => m.exam_type === "mst1");
@@ -12588,6 +12612,26 @@ window.renderHodDashboard = async (container) => {
                 <div id="cyber-live-clock" style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); width: auto;">
                     Loading...
                 </div>
+            </div>
+        </div>
+
+        <div class="card" style="display: flex; gap: 1rem; align-items: center; padding: 0.85rem 1.25rem; margin-bottom: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); flex-wrap: wrap;">
+            <span style="font-weight: 700; font-size: 0.82rem; color: var(--text-main); display: flex; align-items: center; gap: 0.35rem;">
+                <i data-lucide="sliders-horizontal" style="width: 14px; height: 14px; color: var(--primary);"></i> Filter View:
+            </span>
+            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Branch:</span>
+                <select id="hod-filter-branch" onchange="window.onHodFilterChange()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                    <option value="">All Branches</option>
+                    ${deptBranches.map((b) => `<option value="${b}" ${hBranch === b ? "selected" : ""}>${b}</option>`).join("")}
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Section:</span>
+                <select id="hod-filter-section" onchange="window.onHodFilterChange()" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                    <option value="">All Sections</option>
+                    ${[...new Set(filteredClasses.map(c => String(c.section)))].sort().map((s) => `<option value="${s}" ${hSection === s ? "selected" : ""}>${s}</option>`).join("")}
+                </select>
             </div>
         </div>
 
