@@ -1088,7 +1088,7 @@ window.renderStudentLayout = async () => {
                             </h1>
                             <p style="color: #64748b; font-size: 1rem; font-weight: 500;">Here is your real-time attendance performance report.</p>
                         </div>
-                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div>
                             <div style="background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 1rem; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.01);">
                                 <div style="background: #eff6ff; color: #2563eb; width: 42px; height: 42px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="contact" style="width: 22px; height: 22px;"></i>
@@ -1098,10 +1098,6 @@ window.renderStudentLayout = async () => {
                                     <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0.1rem;">${student.roll_no}</div>
                                 </div>
                             </div>
-                            <button onclick="window.switchStudentTab('changepassword')" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 1rem; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 15px rgba(0,0,0,0.01); min-height: 59px; cursor: pointer; color: #003366; border: 1px solid rgba(0,0,0,0.06); font-family: inherit; font-weight: 700; font-size: 0.9rem; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
-                                <i data-lucide="key" style="width: 18px; height: 18px; color: #003366;"></i>
-                                <span>Change Password</span>
-                            </button>
                         </div>
                     </div>
                     <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
