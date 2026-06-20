@@ -1141,11 +1141,11 @@ button {
     font-size: 0.6rem !important;
   }
 
-  /* Ensure tables use standard table layout on mobile to align columns correctly */
+  /* Ensure tables use standard table layout on mobile to align columns correctly and scroll instead of squishing */
   table {
     display: table !important;
     width: max-content !important;
-    min-width: 100% !important;
+    min-width: 800px !important;
   }
 
   thead {
@@ -1171,9 +1171,12 @@ button {
     font-size: 0.68rem !important;
   }
 
-  /* Remove min-width on tables that force overflow */
-  table[style*="min-width"] {
-    min-width: 0 !important;
+  /* Make sure parent containers of any table scroll horizontally on mobile */
+  div:has(> table),
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
   }
 
   /* ══════════════════════════════════════════════════════════════
