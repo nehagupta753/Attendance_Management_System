@@ -13007,12 +13007,7 @@ window.showHodStudentsModal = () => {
       currentState.teacherData.department ||
       "IT";
   }
-  const deptBranches =
-    activeDept === "IT"
-      ? ["IT", "DS"]
-      : activeDept === "CS"
-        ? ["CS"]
-        : ["CSIT"];
+  const deptBranches = window.getDeptBranches(activeDept);
   const deptStudents = currentState.students.filter((s) =>
     deptBranches.includes(s.branch),
   );
@@ -13134,12 +13129,7 @@ window.showHodSectionsModal = () => {
       currentState.teacherData.department ||
       "IT";
   }
-  const deptBranches =
-    activeDept === "IT"
-      ? ["IT", "DS"]
-      : activeDept === "CS"
-        ? ["CS"]
-        : ["CSIT"];
+  const deptBranches = window.getDeptBranches(activeDept);
   const deptClasses = currentState.classes.filter((cl) =>
     deptBranches.includes(cl.branch),
   );
@@ -13201,12 +13191,7 @@ window.showHodAchievementsModal = () => {
       currentState.teacherData.department ||
       "IT";
   }
-  const deptBranches =
-    activeDept === "IT"
-      ? ["IT", "DS"]
-      : activeDept === "CS"
-        ? ["CS"]
-        : ["CSIT"];
+  const deptBranches = window.getDeptBranches(activeDept);
   const deptStudents = currentState.students.filter((s) =>
     deptBranches.includes(s.branch),
   );
@@ -13297,12 +13282,7 @@ window.showHodMstDetailsModal = () => {
       currentState.teacherData.department ||
       "IT";
   }
-  const deptBranches =
-    activeDept === "IT"
-      ? ["IT", "DS"]
-      : activeDept === "CS"
-        ? ["CS"]
-        : ["CSIT"];
+  const deptBranches = window.getDeptBranches(activeDept);
   const deptClasses = currentState.classes.filter((cl) =>
     deptBranches.includes(cl.branch),
   );
