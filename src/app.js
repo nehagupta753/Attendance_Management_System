@@ -2377,7 +2377,7 @@ style="max-width:90%;max-height:50px;object-fit:contain;">
             </div>
         </nav>
         <main class="main-content">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); background: #ffffff; margin-top: -2rem; margin-left: -2.5rem; margin-right: -2.5rem; height: 70px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.01);">
+            <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); background: #ffffff; margin-top: -2rem; margin-left: -2.5rem; margin-right: -2.5rem; height: 70px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.01);">
                 <button class="mobile-menu-toggle" onclick="window.toggleSidebar()" style="display: none; background: #fafafa; border: 1px solid rgba(0,0,0,0.06); border-radius: 0.5rem; padding: 0.5rem; color: var(--text-main); cursor: pointer; align-items: center; justify-content: center; margin-right: 1rem;">
                     <i data-lucide="menu"></i>
                 </button>
@@ -3338,7 +3338,7 @@ async function renderMarkAttendance(container) {
             ${
               filteredClasses.length > 0
                 ? `
-            <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <div class="lecture-cards-container" style="display:flex;gap:1rem;flex-wrap:wrap;">
                 ${filteredClasses
                   .map((t, idx) => {
                     const lectureNo = idx + 1;
@@ -3404,7 +3404,7 @@ async function renderMarkAttendance(container) {
         </div>
 
         <div id="lecture-mark-form" style="display:none;">
-            <div class="card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: end;">
+            <div class="card mark-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: end;">
                 <div class="form-group">
                     <label>Date</label>
                     <input type="date" id="sel-date" value="${todayDate}">
@@ -3717,8 +3717,8 @@ window.loadStudentList = async () => {
                         <h3 style="margin:0;">Student List (${filteredStudents.length} Students)</h3>
                         <div class="bulk-switch-container" style="margin-top:0.65rem;">
                             <div class="attendance-switch bulk-switch absent-active" id="bulk-attendance-switch" onclick="window.toggleBulkMarkSwitch(this)">
-                                <button class="switch-btn absent">Absent All</button>
-                                <button class="switch-btn present">Present All</button>
+                                <button class="switch-btn absent"><span class="full-text">Absent All</span><span class="short-text">All A</span></button>
+                                <button class="switch-btn present"><span class="full-text">Present All</span><span class="short-text">All P</span></button>
                             </div>
                         </div>
                     </div>
@@ -3762,8 +3762,8 @@ window.loadStudentList = async () => {
                                         <td>
                                             <div style="display:flex; justify-content:center;">
                                                 <div class="attendance-switch ${activeClass} student-row-switch" data-student-id="${s.id}" data-status="${status}" onclick="window.toggleStudentRowSwitch(this, '${s.id}')">
-                                                    <button class="switch-btn absent">Absent</button>
-                                                    <button class="switch-btn present">Present</button>
+                                                    <button class="switch-btn absent"><span class="full-text">Absent</span><span class="short-text">A</span></button>
+                                                    <button class="switch-btn present"><span class="full-text">Present</span><span class="short-text">P</span></button>
                                                 </div>
                                             </div>
                                         </td>
@@ -4996,7 +4996,7 @@ async function renderDashboard(c) {
                 </div>
             </div>
         </div>
-        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch;">
+        <div class="admin-main-grid" style="margin-top: 1.5rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch;">
             <div class="card" style="margin-bottom: 0; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; height: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Today's Branch-wise Attendance</h3>
@@ -5073,7 +5073,7 @@ async function renderDashboard(c) {
                 </a>
             </div>
             <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
                         <tr style="background: var(--bg-card); border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
                             <th style="padding: 0.75rem 1rem; border-radius: var(--radius-sm) 0 0 var(--radius-sm);">Branch</th>
@@ -7894,7 +7894,7 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                     </div>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch;">
+            <div class="coord-main-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch;">
                 <div class="card" style="margin-bottom: 0; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #ffffff; display: flex; flex-direction: column; gap: 1.25rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                         <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Attendance Trends</h3>
@@ -8219,7 +8219,10 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                     </div>
                 </div>
                 <div class="card" style="margin-bottom: 0; padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #ffffff; display: flex; flex-direction: column; gap: 1rem;">
-                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0;">Submission Status</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0;">Submission Status</h3>
+                        <input type="date" value="${todayDate}" onchange="window.changeCoordDate(this.value)" style="background: #ffffff; color: var(--text-main); padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.75rem; cursor: pointer; outline: none;">
+                    </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.75rem; min-height: 250px; overflow-y: auto;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left;" class="dashboard-faculty-table">
@@ -8277,7 +8280,7 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                         </table>
                     </div>
 
-                    <button onclick="window.switchView('coordEditAttendance')" style="width: 100%; border: 1px solid var(--border); background: #ffffff; color: var(--primary); font-size: 0.78rem; font-weight: 700; padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; text-align: center; outline: none; margin-top: auto;">
+                    <button onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance')" style="width: 100%; border: 1px solid var(--border); background: #ffffff; color: var(--primary); font-size: 0.78rem; font-weight: 700; padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; text-align: center; outline: none; margin-top: auto;">
                         View All Submissions
                     </button>
                 </div>
@@ -10042,7 +10045,7 @@ async function renderCoordEditAttendance(container) {
 
   if (!currentState.coordAttendanceFilters) {
     currentState.coordAttendanceFilters = {
-      date: "",
+      date: window._selectedCoordDateStr || "",
       branch: coordClass.branch,
       section: coordClass.section,
       subject: "All",
@@ -10291,7 +10294,7 @@ window.renderMstSettings = async (container) => {
                 </div>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
                 ${settings
                   .map(
                     (s) => `

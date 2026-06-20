@@ -15,10 +15,12 @@
         document.body.appendChild(err);
     });
 
-    // Dynamic cache busting for CSS
+    // Dynamic cache busting for CSS (protocol-aware)
+    var isFile = window.location.protocol === 'file:';
+    var pathPrefix = isFile ? '../src/' : '/src/';
     var link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = '../src/style.css?v=' + Date.now();
+    link.href = pathPrefix + 'style.css?v=' + Date.now();
     document.head.appendChild(link);
     </script>
 
@@ -41,10 +43,12 @@
     </div>
 
     <script>
-    // Dynamic cache busting for JS module
+    // Dynamic cache busting for JS module (protocol-aware)
+    var isFile = window.location.protocol === 'file:';
+    var pathPrefix = isFile ? '../src/' : '/src/';
     var script = document.createElement('script');
     script.type = 'module';
-    script.src = '../src/app.js?v=' + Date.now();
+    script.src = pathPrefix + 'app.js?v=' + Date.now();
     document.body.appendChild(script);
     </script>
 </body>

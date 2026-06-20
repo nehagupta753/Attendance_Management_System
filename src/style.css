@@ -931,7 +931,13 @@ button {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — Tablet & Phone (≤ 768px)
+   Uses !important on layout overrides to beat inline styles in app.js
+   ══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+
+  /* ── Sidebar: Slide-in drawer ── */
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -941,16 +947,22 @@ button {
     transform: translateX(0);
     box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15);
   }
+
+  /* ── Main Content: Full width ── */
   .main-content {
-    margin-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-    padding-top: 1rem;
+    margin-left: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 1rem 0.75rem !important;
+    padding-top: 0.5rem !important;
   }
+
+  /* ── Mobile Hamburger: Show ── */
   .mobile-menu-toggle {
     display: inline-flex !important;
   }
-  /* Click-outside sidebar overlay */
+
+  /* ── Sidebar Overlay ── */
   .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -966,6 +978,658 @@ button {
   }
   .sidebar-overlay.show {
     display: block;
+  }
+
+  /* ── Header: Compact mobile header ── */
+  .app-header,
+  .main-content > header {
+    height: 56px !important;
+    margin-top: -1rem !important;
+    margin-left: -0.75rem !important;
+    margin-right: -0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Hide profile name text on small screens, keep avatar */
+  .profile-dropdown-container > div:nth-child(2) {
+    display: none !important;
+  }
+
+  /* ── Profile Dropdown: Full-width on mobile ── */
+  .profile-dropdown-menu {
+    right: -0.5rem !important;
+    min-width: 220px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     GRID LAYOUT OVERRIDES — Force inline grids to stack
+     Uses CSS attribute selectors to target inline style= values
+     ══════════════════════════════════════════════════════════════ */
+
+  /* Force ALL 2-column grids (1fr 1fr) to stack */
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force ALL 3-column grids (1fr 1fr 1fr) to stack */
+  [style*="grid-template-columns: 1fr 1fr 1fr"],
+  [style*="grid-template-columns:1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force ALL 4-column grids to stack */
+  [style*="grid-template-columns: 1fr 1fr 1fr 1fr"],
+  [style*="grid-template-columns:1fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Force 2fr 1fr layouts to stack (dashboard main areas) */
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns:2fr 1fr"],
+  .coord-main-grid,
+  .admin-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force repeat(2, 1fr) to stack */
+  [style*="grid-template-columns: repeat(2"],
+  [style*="grid-template-columns:repeat(2"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force repeat(3, 1fr) to 1 column */
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns:repeat(3"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force 5-column complex grids to stack */
+  [style*="grid-template-columns: auto 2fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force 1fr 2fr auto forms to stack */
+  [style*="grid-template-columns: 1fr 2fr auto"],
+  [style*="grid-template-columns:1fr 2fr auto"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Force 110px 1fr grids to stack */
+  [style*="grid-template-columns: 110px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Fix auto-fit grids with too-large minmax for phones */
+  [style*="minmax(350px"],
+  [style*="minmax(320px"],
+  [style*="minmax(300px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce gap on mobile grids */
+  [style*="display: grid"][style*="gap: 1.5rem"],
+  [style*="display:grid"][style*="gap: 1.5rem"] {
+    gap: 1rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     CARDS — Compact mobile cards
+     ══════════════════════════════════════════════════════════════ */
+  .card {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* Disable card hover transform on mobile (prevents jank on touch) */
+  .card:hover {
+    transform: none !important;
+  }
+
+  /* Stat cards — tighter */
+  .stat-card {
+    padding: 1.25rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.75rem !important;
+  }
+
+  /* Academic stat cards */
+  .academic-stat-card {
+    padding: 1.25rem 1.25rem 0 1.25rem !important;
+    min-height: 140px !important;
+  }
+
+  .academic-stat-card .card-value {
+    font-size: 1.6rem !important;
+  }
+
+  .academic-stat-card .card-icon-wrapper {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     TABLES — Mobile-friendly tables
+     ══════════════════════════════════════════════════════════════ */
+  .table-container {
+    border-radius: var(--radius-sm) !important;
+  }
+
+  th {
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  td {
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Timetable cells — smaller */
+  .timetable-table td {
+    height: 55px !important;
+    padding: 0.25rem 0.15rem !important;
+    font-size: 0.6rem !important;
+  }
+
+  .timetable-table th {
+    padding: 0.4rem 0.15rem !important;
+    font-size: 0.6rem !important;
+  }
+
+  /* Force tables to scroll horizontally even without .table-container */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead, tbody, tr {
+    display: table;
+    width: 100%;
+    table-layout: auto;
+  }
+
+  /* Dashboard faculty tables */
+  .dashboard-faculty-table th,
+  .dashboard-faculty-table td {
+    padding: 0.4rem 0.2rem !important;
+    font-size: 0.68rem !important;
+  }
+
+  /* Remove min-width on tables that force overflow */
+  table[style*="min-width"] {
+    min-width: 0 !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     MODALS — Full-width mobile modals
+     ══════════════════════════════════════════════════════════════ */
+  .modal-overlay {
+    padding: 0.75rem !important;
+    align-items: flex-start !important;
+    padding-top: 2rem !important;
+  }
+
+  .modal-card {
+    padding: 1.25rem !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: var(--radius-md) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-card.modal-wide {
+    max-width: 100% !important;
+  }
+
+  /* Modal grids — stack fields */
+  .modal-card [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     FORMS — Mobile-friendly inputs & selects
+     ══════════════════════════════════════════════════════════════ */
+  .form-group {
+    margin-bottom: 0.75rem !important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select {
+    padding: 0.65rem 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Ensure date inputs are touch-friendly */
+  input[type="date"] {
+    min-height: 42px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     BUTTONS — Touch-friendly sizing (44px min target)
+     ══════════════════════════════════════════════════════════════ */
+  button {
+    min-height: 42px !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px !important;
+    padding: 0.65rem 1.25rem !important;
+  }
+
+  /* Student tab buttons — allow wrapping */
+  .student-tab-btn {
+    min-width: 120px !important;
+    max-width: none !important;
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ATTENDANCE SWITCHES — Compact on mobile
+     ══════════════════════════════════════════════════════════════ */
+  .attendance-switch .switch-btn {
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.7rem !important;
+    min-width: 60px !important;
+  }
+
+  .attendance-switch.bulk-switch .switch-btn {
+    padding: 0.4rem 0.9rem !important;
+    font-size: 0.75rem !important;
+    min-width: 85px !important;
+  }
+
+  /* Mark Status column — allow smaller */
+  td[style*="min-width: 200px"],
+  td[style*="min-width:200px"] {
+    min-width: 140px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ATTENDANCE GAUGES — Smaller on mobile
+     ══════════════════════════════════════════════════════════════ */
+  .attendance-3d-card {
+    width: 140px !important;
+    height: 140px !important;
+  }
+
+  .attendance-3d-card .inner-card h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .attendance-mini-gauge {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     DASHBOARD SPECIFIC — Pill grid, promo cards
+     ══════════════════════════════════════════════════════════════ */
+  .db-pill-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .db-promo-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .promo-card {
+    min-height: 140px !important;
+  }
+
+  .dashboard-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     TYPOGRAPHY — Adjust heading sizes
+     ══════════════════════════════════════════════════════════════ */
+  h1 {
+    font-size: 1.3rem !important;
+  }
+
+  h2 {
+    font-size: 1.15rem !important;
+  }
+
+  h3 {
+    font-size: 0.95rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     AUTH / LOGIN — Mobile-friendly
+     ══════════════════════════════════════════════════════════════ */
+  .auth-container {
+    padding: 1rem !important;
+    align-items: flex-start !important;
+    padding-top: 2rem !important;
+  }
+
+  .auth-card {
+    padding: 1.5rem !important;
+    max-width: 100% !important;
+  }
+
+  /* Disable hover-lift on auth cards for mobile */
+  .auth-card:hover {
+    transform: none !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     TOAST NOTIFICATIONS — Mobile-friendly
+     ══════════════════════════════════════════════════════════════ */
+  .toast-notification,
+  [style*="position: fixed"][style*="top: 1.5rem"][style*="right:"] {
+    right: 0.5rem !important;
+    left: 0.5rem !important;
+    max-width: calc(100vw - 1rem) !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     COORDINATOR DASHBOARD — Compact stat cards
+     ══════════════════════════════════════════════════════════════ */
+  /* Coord/Admin stat card rows with auto-fit minmax(180px) */
+  [style*="minmax(180px"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Coord trend tabs — scrollable */
+  [style*="coord-trend-tab"],
+  .coord-trend-tab {
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.4rem !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     FLEX WRAPPING — Ensure flex containers wrap on mobile
+     ══════════════════════════════════════════════════════════════ */
+  [style*="display: flex"][style*="justify-content: space-between"],
+  [style*="display:flex"][style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     SEARCH / FILTER BARS — Full width
+     ══════════════════════════════════════════════════════════════ */
+  [style*="max-width: 200px"],
+  [style*="max-width:200px"] {
+    max-width: 100% !important;
+  }
+
+  [style*="max-width: 140px"],
+  [style*="max-width:140px"] {
+    max-width: 100% !important;
+  }
+
+  /* Filter selects with min-width */
+  [style*="min-width: 200px"],
+  [style*="min-width:200px"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  [style*="min-width: 250px"],
+  [style*="min-width:250px"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     MISC MOBILE TWEAKS
+     ══════════════════════════════════════════════════════════════ */
+
+  /* Ensure nothing overflows horizontally */
+  #app, .main-content, #main-content {
+    overflow-x: hidden !important;
+  }
+
+  /* Lecture cards in mark attendance — full width */
+  [style*="min-width: 250px"] {
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+
+  /* Status badges — smaller */
+  .status-badge {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+
+  /* Hero stat cards — stack */
+  .hero-stat-card {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  /* Image lightbox — full screen */
+  [style*="position: fixed"][style*="z-index: 99999"] img {
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+  }
+
+  /* ── 1st Image: Compact Lecture Cards on Mobile ── */
+  .lecture-cards-container {
+    gap: 0.5rem !important;
+  }
+  .lecture-card {
+    padding: 0.65rem 0.85rem !important;
+    min-height: 0 !important;
+  }
+  .lecture-card > div > div {
+    margin-bottom: 0.2rem !important;
+  }
+  .lecture-card button {
+    padding: 0.4rem !important;
+    font-size: 0.72rem !important;
+    min-height: 32px !important;
+    margin-top: 0.5rem !important;
+  }
+
+  /* ── 2nd Image: Compact Manual Mark Form Grid ── */
+  .mark-form-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+  }
+  .mark-form-grid > .form-group:nth-child(1) {
+    grid-column: span 3 !important; /* Date */
+  }
+  .mark-form-grid > .form-group:nth-child(2),
+  .mark-form-grid > .form-group:nth-child(3),
+  .mark-form-grid > .form-group:nth-child(4) {
+    grid-column: span 1 !important; /* Year, Branch, Section */
+  }
+  .mark-form-grid > .form-group:nth-child(5) {
+    grid-column: span 1 !important; /* Class Type */
+  }
+  .mark-form-grid > #sel-lecture-no-container {
+    grid-column: span 2 !important; /* Lecture No */
+  }
+  .mark-form-grid > #sel-subject-container {
+    grid-column: span 3 !important; /* Subject */
+  }
+
+  /* ── 3rd Image: Shorten present/absent switch button on mobile ── */
+  .full-text {
+    display: none !important;
+  }
+  .short-text {
+    display: inline !important;
+  }
+  .attendance-switch .switch-btn {
+    min-width: 38px !important;
+    padding: 0.3rem 0.4rem !important;
+    font-size: 0.72rem !important;
+  }
+  .attendance-switch.bulk-switch .switch-btn {
+    min-width: 55px !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.72rem !important;
+  }
+  
+  /* Reduce student list table cell padding on mobile */
+  #attendance-table th, 
+  #attendance-table td {
+    padding: 0.4rem 0.3rem !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXTRA SMALL PHONES (≤ 480px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  .main-content {
+    padding: 0.5rem 0.5rem !important;
+  }
+
+  .app-header,
+  .main-content > header {
+    height: 48px !important;
+    margin-left: -0.5rem !important;
+    margin-right: -0.5rem !important;
+    padding: 0.35rem 0.5rem !important;
+  }
+
+  .card {
+    padding: 0.75rem !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  h1 {
+    font-size: 1.1rem !important;
+  }
+
+  th {
+    padding: 0.4rem 0.3rem !important;
+    font-size: 0.6rem !important;
+  }
+
+  td {
+    padding: 0.4rem 0.3rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  .attendance-3d-card {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .attendance-3d-card .inner-card h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .attendance-mini-gauge {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .stats-grid,
+  .dashboard-grid-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  [style*="minmax(180px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .db-pill-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.35rem !important;
+  }
+
+  .db-pill-btn {
+    font-size: 0.62rem !important;
+    padding: 0.4rem 0.15rem !important;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem !important;
+    padding-top: 1rem !important;
+  }
+
+  .modal-card {
+    padding: 1rem !important;
+  }
+
+  /* Bulk attendance switch — compact */
+  .bulk-switch-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .attendance-switch.bulk-switch .switch-btn {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.7rem !important;
+    min-width: 70px !important;
+  }
+
+  .attendance-switch .switch-btn {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.65rem !important;
+    min-width: 50px !important;
+  }
+
+  /* Student tab buttons — even smaller */
+  .student-tab-btn {
+    min-width: 90px !important;
+    padding: 0.5rem 0.5rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  button {
+    font-size: 0.78rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Sidebar on extra small — full width */
+  .sidebar {
+    width: 100vw !important;
+    min-width: 100vw !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MEDIUM SCREENS / TABLETS (≤ 1024px)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Coordinator and Admin main grids stack at tablet */
+  .coord-main-grid,
+  .admin-main-grid,
+  [style*="grid-template-columns: 2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* MST settings grid */
+  [style*="minmax(350px"],
+  [style*="minmax(320px"] {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -1974,4 +2638,8 @@ button {
   border-bottom-right-radius: 16px;
   z-index: 1;
   pointer-events: none;
+}
+
+.short-text {
+  display: none;
 }
