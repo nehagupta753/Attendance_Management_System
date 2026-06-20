@@ -1007,11 +1007,14 @@ window.renderStudentLayout = async () => {
             <style>
                 .student-tab-container {
                     display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
                     background: #ffffff;
                     border: 1px solid rgba(0, 0, 0, 0.06);
                     border-radius: 2rem;
                     padding: 0.25rem;
                     width: max-content;
+                    max-width: 95%;
                     margin: 2rem auto;
                     gap: 0.25rem;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.02);
@@ -1025,15 +1028,32 @@ window.renderStudentLayout = async () => {
                     border-radius: 1.5rem !important;
                     display: flex !important;
                     align-items: center !important;
+                    justify-content: center !important;
                     gap: 0.5rem !important;
                     cursor: pointer !important;
                     color: #64748b !important;
                     transition: all 0.2s ease !important;
                     box-shadow: none !important;
+                    white-space: nowrap !important;
                 }
                 .student-tab-btn.active {
                     background: #003366 !important;
                     color: #ffffff !important;
+                }
+                @media (max-width: 640px) {
+                    .student-tab-container {
+                        width: calc(100% - 2rem) !important;
+                        border-radius: 1rem !important;
+                        padding: 0.5rem !important;
+                        gap: 0.5rem !important;
+                        margin: 1rem auto !important;
+                    }
+                    .student-tab-btn {
+                        flex: 1 1 calc(50% - 0.5rem) !important;
+                        padding: 0.75rem 0.5rem !important;
+                        font-size: 0.8rem !important;
+                        border-radius: 0.75rem !important;
+                    }
                 }
             </style>
 
