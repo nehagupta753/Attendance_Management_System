@@ -10790,12 +10790,17 @@ window.renderMstTimetable = async (container) => {
             </div>
         </div>
 
-        <div style="padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: var(--shadow);">
+        <div id="admin-mst-records-card" style="padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: var(--shadow);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0;">MST Timetable Records</h2>
-                <button onclick="window.exportMstTimetableToCSV()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-main);">
-                    <i data-lucide="download" style="width: 16px; height: 16px;"></i> Download CSV
-                </button>
+                <div id="admin-mst-records-actions" style="display: flex; gap: 0.5rem;">
+                    <button onclick="window.exportAdminMstTimetableToImage()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: var(--primary); border: 1px solid var(--primary); color: white;">
+                        <i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Image
+                    </button>
+                    <button onclick="window.exportMstTimetableToCSV()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-main);">
+                        <i data-lucide="download" style="width: 16px; height: 16px;"></i> Download CSV
+                    </button>
+                </div>
             </div>
             
             <div style="overflow-x: auto;">
@@ -10824,6 +10829,7 @@ window.renderMstTimetable = async (container) => {
                                     t.classes?.branch || t.branch || "";
                                   const yr = t.classes?.year || "";
                                   const sec = t.classes?.section || "";
+                                  const classText = yr ? `${br} ${yr} Sec ${sec}` : br;
                                   const recordLockKey = `mst_tt_locked_${t.mst_name}_${br}_${yr}_${sec}`;
                                   const isRecordLocked =
                                     br &&
@@ -10869,6 +10875,35 @@ window.renderMstTimetable = async (container) => {
   if (selectedMst && selectedBranch && selectedYear && selectedSection) {
     window.loadMstTimetableScheduler();
   }
+};
+
+window.exportAdminMstTimetableToImage = () => {
+  const card = document.getElementById("admin-mst-records-card");
+  const actions = document.getElementById("admin-mst-records-actions");
+  if (!card) return;
+  
+  if (actions) actions.style.display = "none";
+  
+  window.html2canvas(card, {
+    scale: 2,
+    backgroundColor: "#ffffff",
+    logging: false,
+    useCORS: true
+  }).then((canvas) => {
+    if (actions) actions.style.display = "flex";
+    
+    const link = document.createElement("a");
+    link.download = `admin_mst_timetable_${new Date().toISOString().split("T")[0]}.png`;
+    link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("MST Timetable image downloaded successfully!");
+  }).catch((err) => {
+    if (actions) actions.style.display = "flex";
+    console.error("Image generation error:", err);
+    showToast("Failed to download image", "error");
+  });
 };
 
 window.lockMstTimetable = () => {
@@ -12516,8 +12551,13 @@ window.loadStudentMstTimetable = async () => {
   });
 
   area.innerHTML = `
-        <div style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow);">
-            <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0 0 1.5rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">MST Exam Timetable (${student.branch})</h3>
+        <div id="student-mst-tt-card" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem; padding: 2rem; box-shadow: var(--shadow);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 0;">MST Exam Timetable (${student.branch})</h3>
+                <button id="student-mst-tt-dl-btn" onclick="window.exportStudentMstTimetableToImage()" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; background: var(--primary); border: 1px solid var(--primary); color: white;">
+                    <i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Image
+                </button>
+            </div>
             
             <div style="overflow-x: auto;">
                 <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -12558,6 +12598,35 @@ window.loadStudentMstTimetable = async () => {
             </div>
         </div>
     `;
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+};
+
+window.exportStudentMstTimetableToImage = () => {
+  const card = document.getElementById("student-mst-tt-card");
+  const dlBtn = document.getElementById("student-mst-tt-dl-btn");
+  if (!card) return;
+  if (dlBtn) dlBtn.style.display = "none";
+  window.html2canvas(card, {
+    scale: 2,
+    backgroundColor: "#ffffff",
+    logging: false,
+    useCORS: true
+  }).then((canvas) => {
+    if (dlBtn) dlBtn.style.display = "flex";
+    const link = document.createElement("a");
+    link.download = `student_mst_timetable_${new Date().toISOString().split("T")[0]}.png`;
+    link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("MST Timetable image downloaded successfully!");
+  }).catch((err) => {
+    if (dlBtn) dlBtn.style.display = "flex";
+    console.error("Image generation error:", err);
+    showToast("Failed to download image", "error");
+  });
 };
 
 window.renderHodDashboard = async (container) => {
