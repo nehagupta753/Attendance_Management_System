@@ -1176,9 +1176,6 @@ window.renderStudentLayout = async () => {
                         <button id="student-tab-updateprofile" class="student-tab-btn" onclick="switchStudentTab('updateprofile')">
                             <i data-lucide="user-cog" style="width: 18px; height: 18px;"></i> Update Profile
                         </button>
-                        <button id="student-tab-changepassword" class="student-tab-btn" onclick="switchStudentTab('changepassword')">
-                            <i data-lucide="key" style="width: 18px; height: 18px;"></i> Change Password
-                        </button>
                     </div>
                     
                     <div id="student-content-attendance">
