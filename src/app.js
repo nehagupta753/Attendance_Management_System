@@ -12592,36 +12592,80 @@ window.renderHodDashboard = async (container) => {
   const classesWithData = classesWithFilter.filter((cl) =>
     displayCumulativeRecords.some((r) => r.class_id === cl.id),
   );
-  const sectionLabels = classesWithData.map((cl) => `${cl.branch} ${cl.year}-${cl.section}`);
-  const sectionAttendance = classesWithData.map((cl) => {
+
+  // === Section-wise date trend data ===
+  const allDatesSet = new Set();
+  const sectionTrendDatasets = [];
+  const chartColors = [
+    { border: "#6366f1", bg: "rgba(99,102,241,0.12)" },
+    { border: "#10b981", bg: "rgba(16,185,129,0.12)" },
+    { border: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+    { border: "#ef4444", bg: "rgba(239,68,68,0.12)" },
+    { border: "#ec4899", bg: "rgba(236,72,153,0.12)" },
+    { border: "#8b5cf6", bg: "rgba(139,92,246,0.12)" },
+    { border: "#0ea5e9", bg: "rgba(14,165,233,0.12)" },
+  ];
+  classesWithData.forEach((cl, idx) => {
     const clRecords = displayCumulativeRecords.filter((r) => r.class_id === cl.id);
-    const pres = clRecords.filter((r) => r.status === "Present").length;
-    return Math.round((pres / clRecords.length) * 100);
+    const dateMap = new Map();
+    clRecords.forEach((r) => {
+      allDatesSet.add(r.date);
+      if (!dateMap.has(r.date)) dateMap.set(r.date, { total: 0, present: 0 });
+      const d = dateMap.get(r.date);
+      d.total++;
+      if (r.status === "Present") d.present++;
+    });
+    sectionTrendDatasets.push({ cl, dateMap, color: chartColors[idx % chartColors.length] });
   });
-  const sectionTotal = classesWithData.map((cl) => {
-    return displayCumulativeRecords.filter((r) => r.class_id === cl.id).length;
+  const allDates = [...allDatesSet].sort();
+  const allDateLabels = allDates.map((d) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short" }));
+
+  // === Subject-wise data per section (for interactive dropdown) ===
+  window._hodSubjectData = {};
+  classesWithData.forEach((cl) => {
+    const clRecords = displayCumulativeRecords.filter((r) => r.class_id === cl.id);
+    const subIds = [...new Set(clRecords.map((r) => r.subject_id))];
+    const subjects = subIds.map((subId) => {
+      const sub = currentState.subjects.find((s) => s.id === subId);
+      const subRecords = clRecords.filter((r) => r.subject_id === subId);
+      const pres = subRecords.filter((r) => r.status === "Present").length;
+      return {
+        name: sub?.name || "Unknown",
+        code: sub?.code || "N/A",
+        pct: Math.round((pres / subRecords.length) * 100),
+        total: subRecords.length,
+      };
+    });
+    window._hodSubjectData[cl.id] = {
+      label: `${cl.branch} ${cl.year}-${cl.section}`,
+      subjects,
+    };
   });
 
-  // Only show subjects that actually have attendance records
-  const subjectIdsWithData = [...new Set(displayCumulativeRecords.map((r) => r.subject_id))];
-  const subjectsInDept = currentState.subjects.filter(
-    (sub) => subjectIdsWithData.includes(sub.id),
-  );
-  const subLabels = subjectsInDept.map((s) => s.name.length > 15 ? s.code || s.name.substring(0, 15) : s.name);
-  const subAttendance = subjectsInDept.map((sub) => {
-    const subRecords = displayCumulativeRecords.filter((r) => r.subject_id === sub.id);
-    const pres = subRecords.filter((r) => r.status === "Present").length;
-    return Math.round((pres / subRecords.length) * 100);
+  // === MST data per branch (for interactive dropdown) ===
+  window._hodMstBranches = deptBranches;
+  window._hodMstData = {};
+  deptBranches.forEach((branch) => {
+    const branchStudents = filteredStudents.filter((s) => s.branch === branch);
+    const branchClassIds = filteredClasses.filter((c) => c.branch === branch).map((c) => c.id);
+    const branchMstTimetable = currentState.mstTimetable.filter((t) => branchClassIds.includes(t.class_id));
+    const branchMstSubjectIds = [...new Set(branchMstTimetable.map((t) => t.subject_id))];
+    const branchScheduledSubjects = currentState.subjects.filter((s) => branchMstSubjectIds.includes(s.id));
+    const labels = [];
+    const m1Avgs = [];
+    const m2Avgs = [];
+    branchScheduledSubjects.forEach((sub) => {
+      labels.push(sub.name.length > 18 ? (sub.code || sub.name.substring(0, 18)) : sub.name);
+      const marks = currentState.mstMarks.filter(
+        (m) => m.subject_id === sub.id && !m.is_absent && branchStudents.some((s) => s.id === m.student_id),
+      );
+      const mst1 = marks.filter((m) => m.mst_name === "mst-1");
+      const mst2 = marks.filter((m) => m.mst_name === "mst-2");
+      m1Avgs.push(mst1.length > 0 ? parseFloat((mst1.reduce((s, m) => s + parseFloat(m.marks || 0), 0) / mst1.length).toFixed(1)) : 0);
+      m2Avgs.push(mst2.length > 0 ? parseFloat((mst2.reduce((s, m) => s + parseFloat(m.marks || 0), 0) / mst2.length).toFixed(1)) : 0);
+    });
+    window._hodMstData[branch] = { labels, m1Avgs, m2Avgs };
   });
-  const subTotal = subjectsInDept.map((sub) => {
-    return displayCumulativeRecords.filter((r) => r.subject_id === sub.id).length;
-  });
-
-  // Daily trend labels and data
-  const trendLabels = dailyTrendData.map((d) => d.label);
-  const trendValues = dailyTrendData.map((d) => d.pct);
-  const trendPresent = dailyTrendData.map((d) => d.present);
-  const trendTotal = dailyTrendData.map((d) => d.total);
   const currentAchievements = [];
   filteredStudents.forEach((s) => {
     if (
@@ -12878,40 +12922,29 @@ window.renderHodDashboard = async (container) => {
         <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                    <i data-lucide="trending-up" style="width: 16px; height: 16px; color: #10b981;"></i>
-                    Daily Attendance Trend
+                    <i data-lucide="trending-up" style="width: 16px; height: 16px; color: #6366f1;"></i>
+                    Section-wise Avg Attendance Trend
                 </h3>
-                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Last ${dailyTrendData.length} days · ${displayCumulativeRecords.length} total records</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${classesWithData.length} sections · ${allDates.length} days tracked</span>
             </div>
-            <div style="height: 220px; position: relative; width: 100%;">
-                <canvas id="hod-trend-chart"></canvas>
+            <div style="height: 260px; position: relative; width: 100%;">
+                <canvas id="hod-section-trend-chart"></canvas>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-            <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                        <i data-lucide="bar-chart-3" style="width: 16px; height: 16px; color: #3b82f6;"></i>
-                        Section-wise Attendance
-                    </h3>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${sectionLabels.length > 0 ? sectionLabels.length + " active sections" : "No data"}</span>
-                </div>
-                <div style="height: 220px; position: relative; width: 100%;">
-                    <canvas id="hod-section-chart"></canvas>
-                </div>
+        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="book-open" style="width: 16px; height: 16px; color: #10b981;"></i>
+                    Subject-wise Attendance
+                </h3>
+                <select id="hod-subject-section-select" onchange="window.renderHodSubjectChart(this.value)" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                    ${classesWithData.map((cl, i) => `<option value="${cl.id}" ${i === 0 ? "selected" : ""}>${cl.branch} ${cl.year}-${cl.section}</option>`).join("")}
+                    ${classesWithData.length === 0 ? '<option value="">No sections with data</option>' : ''}
+                </select>
             </div>
-            <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                        <i data-lucide="book-open" style="width: 16px; height: 16px; color: #10b981;"></i>
-                        Subject-wise Attendance
-                    </h3>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${subLabels.length > 0 ? subLabels.length + " subjects tracked" : "No data"}</span>
-                </div>
-                <div style="height: 220px; position: relative; width: 100%;">
-                    <canvas id="hod-subject-chart"></canvas>
-                </div>
+            <div style="height: 240px; position: relative; width: 100%;">
+                <canvas id="hod-subject-chart"></canvas>
             </div>
         </div>
 
@@ -13063,11 +13096,19 @@ window.renderHodDashboard = async (container) => {
         </div>
 
         <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Subject-wise MST Performance</h3>
-                <button onclick="window.showHodMstDetailsModal()" style="background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text-main); font-size:0.75rem; padding:0.3rem 0.75rem; cursor:pointer; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='var(--bg-dark)'" onmouseout="this.style.background='transparent'">View Details</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="award" style="width: 16px; height: 16px; color: #f59e0b;"></i>
+                    Subject-wise MST Performance
+                </h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <select id="hod-mst-branch-select" onchange="window.renderHodMstChart(this.value)" style="background: var(--bg-dark); color: var(--primary); padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; outline: none;">
+                        ${deptBranches.map((b, i) => `<option value="${b}" ${i === 0 ? "selected" : ""}>${b}</option>`).join("")}
+                    </select>
+                    <button onclick="window.showHodMstDetailsModal()" style="background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text-main); font-size:0.75rem; padding:0.3rem 0.75rem; cursor:pointer; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='var(--bg-dark)'" onmouseout="this.style.background='transparent'">View Details</button>
+                </div>
             </div>
-            <div style="height: 200px; position: relative; width: 100%;">
+            <div style="height: 220px; position: relative; width: 100%;">
                 <canvas id="hod-mst-chart"></canvas>
             </div>
         </div>
@@ -13076,205 +13117,151 @@ window.renderHodDashboard = async (container) => {
   lucide.createIcons();
   startLiveClock();
 
-  setTimeout(() => {
-    // ===== Daily Attendance Trend Chart =====
-    const trendCtx = document.getElementById("hod-trend-chart");
-    if (trendCtx) {
-      new Chart(trendCtx.getContext("2d"), {
-        type: "line",
-        data: {
-          labels: trendLabels.length > 0 ? trendLabels : ["No Data"],
-          datasets: [
-            {
-              label: "Attendance %",
-              data: trendValues.length > 0 ? trendValues : [0],
-              borderColor: "#6366f1",
-              backgroundColor: (ctx) => {
-                const chart = ctx.chart;
-                const { ctx: canvasCtx, chartArea } = chart;
-                if (!chartArea) return "rgba(99, 102, 241, 0.1)";
-                const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, "rgba(99, 102, 241, 0.3)");
-                gradient.addColorStop(1, "rgba(99, 102, 241, 0.02)");
-                return gradient;
-              },
-              borderWidth: 2.5,
-              tension: 0.4,
-              fill: true,
-              pointBackgroundColor: "#6366f1",
-              pointBorderColor: "#fff",
-              pointBorderWidth: 2,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-            },
-          ],
+  // === Interactive chart renderers ===
+  window._hodSubjectChartInstance = null;
+  window.renderHodSubjectChart = (classId) => {
+    const canvas = document.getElementById("hod-subject-chart");
+    if (!canvas) return;
+    if (window._hodSubjectChartInstance) window._hodSubjectChartInstance.destroy();
+    const data = window._hodSubjectData[classId];
+    const subColors = [
+      "rgba(99,102,241,0.7)", "rgba(16,185,129,0.7)", "rgba(245,158,11,0.7)",
+      "rgba(236,72,153,0.7)", "rgba(139,92,246,0.7)", "rgba(59,130,246,0.7)",
+      "rgba(234,88,12,0.7)", "rgba(14,165,233,0.7)", "rgba(168,85,247,0.7)",
+    ];
+    const subBorders = [
+      "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6",
+      "#ea580c", "#0ea5e9", "#a855f7",
+    ];
+    if (!data || data.subjects.length === 0) {
+      window._hodSubjectChartInstance = new Chart(canvas.getContext("2d"), {
+        type: "bar", data: { labels: ["No data"], datasets: [{ label: "%", data: [0], backgroundColor: ["rgba(0,0,0,0.1)"] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100 } } },
+      });
+      return;
+    }
+    window._hodSubjectChartInstance = new Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: data.subjects.map((s) => s.name.length > 18 ? (s.code !== "N/A" ? s.code : s.name.substring(0, 18)) : s.name),
+        datasets: [{
+          label: "Attendance %",
+          data: data.subjects.map((s) => s.pct),
+          backgroundColor: data.subjects.map((_, i) => subColors[i % subColors.length]),
+          borderColor: data.subjects.map((_, i) => subBorders[i % subBorders.length]),
+          borderWidth: 1.5, borderRadius: 6, borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { afterLabel: (ctx) => `Based on ${data.subjects[ctx.dataIndex]?.total || 0} records` } },
         },
+        scales: {
+          y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
+          x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+        },
+      },
+    });
+  };
+
+  window._hodMstChartInstance = null;
+  window.renderHodMstChart = (branch) => {
+    const canvas = document.getElementById("hod-mst-chart");
+    if (!canvas) return;
+    if (window._hodMstChartInstance) window._hodMstChartInstance.destroy();
+    const data = window._hodMstData[branch];
+    if (!data || data.labels.length === 0) {
+      window._hodMstChartInstance = new Chart(canvas.getContext("2d"), {
+        type: "bar", data: { labels: ["No MST data for " + branch], datasets: [{ label: "Avg", data: [0], backgroundColor: ["rgba(0,0,0,0.1)"] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 20 } } },
+      });
+      return;
+    }
+    const maxMarks = (currentState.mstSettings || []).reduce((m, s) => Math.max(m, parseFloat(s.total_marks || 20)), 20);
+    window._hodMstChartInstance = new Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: data.labels,
+        datasets: [
+          { label: "MST 1 Avg", data: data.m1Avgs, backgroundColor: "rgba(59,130,246,0.7)", borderColor: "#3b82f6", borderWidth: 1.5, borderRadius: 4 },
+          { label: "MST 2 Avg", data: data.m2Avgs, backgroundColor: "rgba(249,115,22,0.7)", borderColor: "#f97316", borderWidth: 1.5, borderRadius: 4 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: "top", labels: { boxWidth: 12, font: { size: 10 } } } },
+        scales: {
+          y: { min: 0, max: maxMarks, ticks: { font: { size: 9 } } },
+          x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+        },
+      },
+    });
+  };
+
+  setTimeout(() => {
+    // ===== Section-wise Date Trend Line Chart =====
+    const secTrendCtx = document.getElementById("hod-section-trend-chart");
+    if (secTrendCtx) {
+      const datasets = sectionTrendDatasets.map((s) => {
+        const values = allDates.map((date) => {
+          const d = s.dateMap.get(date);
+          return d ? Math.round((d.present / d.total) * 100) : null;
+        });
+        return {
+          label: `${s.cl.branch} ${s.cl.year}-${s.cl.section}`,
+          data: values,
+          borderColor: s.color.border,
+          backgroundColor: s.color.bg,
+          borderWidth: 2.5,
+          tension: 0.35,
+          fill: false,
+          pointBackgroundColor: s.color.border,
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          spanGaps: true,
+        };
+      });
+      new Chart(secTrendCtx.getContext("2d"), {
+        type: "line",
+        data: { labels: allDateLabels.length > 0 ? allDateLabels : ["No Data"], datasets: datasets.length > 0 ? datasets : [{ label: "No data", data: [0] }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
-            legend: { display: false },
+            legend: { display: true, position: "top", labels: { boxWidth: 14, font: { size: 11, weight: "600" }, padding: 16, usePointStyle: true, pointStyle: "circle" } },
             tooltip: {
               callbacks: {
-                afterLabel: (ctx) => {
-                  const i = ctx.dataIndex;
-                  return trendPresent[i] !== undefined ? `${trendPresent[i]}/${trendTotal[i]} records` : '';
+                label: (ctx) => {
+                  const ds = sectionTrendDatasets[ctx.datasetIndex];
+                  const date = allDates[ctx.dataIndex];
+                  const d = ds?.dateMap.get(date);
+                  return d ? `${ctx.dataset.label}: ${ctx.parsed.y}% (${d.present}/${d.total})` : `${ctx.dataset.label}: No data`;
                 },
               },
             },
           },
           scales: {
             y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
-            x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+            x: { ticks: { font: { size: 10, weight: "600" } }, grid: { display: false } },
           },
         },
       });
     }
 
-    // ===== Section-wise Attendance Bar Chart =====
-    const sCtx = document.getElementById("hod-section-chart");
-    if (sCtx) {
-      const secColors = sectionAttendance.map((v) =>
-        v >= 75 ? "rgba(16, 185, 129, 0.7)" : v >= 50 ? "rgba(245, 158, 11, 0.7)" : "rgba(239, 68, 68, 0.7)",
-      );
-      const secBorders = sectionAttendance.map((v) =>
-        v >= 75 ? "#10b981" : v >= 50 ? "#f59e0b" : "#ef4444",
-      );
-      new Chart(sCtx.getContext("2d"), {
-        type: "bar",
-        data: {
-          labels: sectionLabels.length > 0 ? sectionLabels : ["No sections with data"],
-          datasets: [
-            {
-              label: "Attendance %",
-              data: sectionAttendance.length > 0 ? sectionAttendance : [0],
-              backgroundColor: secColors.length > 0 ? secColors : ["rgba(59,130,246,0.6)"],
-              borderColor: secBorders.length > 0 ? secBorders : ["#3b82f6"],
-              borderWidth: 1.5,
-              borderRadius: 6,
-              borderSkipped: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                afterLabel: (ctx) => {
-                  const i = ctx.dataIndex;
-                  return sectionTotal[i] ? `Based on ${sectionTotal[i]} records` : '';
-                },
-              },
-            },
-          },
-          scales: {
-            y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
-            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
-          },
-        },
-      });
+    // ===== Subject-wise: render first section by default =====
+    if (classesWithData.length > 0) {
+      window.renderHodSubjectChart(classesWithData[0].id);
+    } else {
+      window.renderHodSubjectChart("");
     }
 
-    // ===== Subject-wise Attendance Chart =====
-    const subCtx = document.getElementById("hod-subject-chart");
-    if (subCtx) {
-      const subColors = [
-        "rgba(99, 102, 241, 0.7)", "rgba(16, 185, 129, 0.7)", "rgba(245, 158, 11, 0.7)",
-        "rgba(236, 72, 153, 0.7)", "rgba(139, 92, 246, 0.7)", "rgba(59, 130, 246, 0.7)",
-        "rgba(234, 88, 12, 0.7)", "rgba(14, 165, 233, 0.7)", "rgba(168, 85, 247, 0.7)",
-      ];
-      const subBorderColors = [
-        "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6",
-        "#ea580c", "#0ea5e9", "#a855f7",
-      ];
-      new Chart(subCtx.getContext("2d"), {
-        type: "bar",
-        data: {
-          labels: subLabels.length > 0 ? subLabels : ["No subjects with data"],
-          datasets: [
-            {
-              label: "Attendance %",
-              data: subAttendance.length > 0 ? subAttendance : [0],
-              backgroundColor: subLabels.map((_, i) => subColors[i % subColors.length]),
-              borderColor: subLabels.map((_, i) => subBorderColors[i % subBorderColors.length]),
-              borderWidth: 1.5,
-              borderRadius: 6,
-              borderSkipped: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                afterLabel: (ctx) => {
-                  const i = ctx.dataIndex;
-                  return subTotal[i] ? `Based on ${subTotal[i]} records` : '';
-                },
-              },
-            },
-          },
-          scales: {
-            y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.04)" } },
-            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
-          },
-        },
-      });
-    }
-
-    const mstCtx = document.getElementById("hod-mst-chart");
-    if (mstCtx) {
-      new Chart(mstCtx.getContext("2d"), {
-        type: "bar",
-        data: {
-          labels:
-            mstSubjectLabels.length > 0 ? mstSubjectLabels : ["Sub 1", "Sub 2"],
-          datasets: [
-            {
-              label: "MST 1 Avg",
-              data: mstSubjectLabels.length > 0 ? mst1Averages : [14, 15],
-              backgroundColor: "rgba(59, 130, 246, 0.7)",
-              borderColor: "#3b82f6",
-              borderWidth: 1.5,
-              borderRadius: 4,
-            },
-            {
-              label: "MST 2 Avg",
-              data: mstSubjectLabels.length > 0 ? mst2Averages : [16, 14],
-              backgroundColor: "rgba(249, 115, 22, 0.7)",
-              borderColor: "#f97316",
-              borderWidth: 1.5,
-              borderRadius: 4,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: "top",
-              labels: { boxWidth: 12, font: { size: 10 } },
-            },
-          },
-          scales: {
-            y: {
-              min: 0,
-              max: (currentState.mstSettings || []).reduce((m, s) => Math.max(m, parseFloat(s.total_marks || 20)), 20),
-              ticks: { font: { size: 9 } }
-            },
-            x: { ticks: { font: { size: 9 } } },
-          },
-        },
-      });
+    // ===== MST: render first branch by default =====
+    if (deptBranches.length > 0) {
+      window.renderHodMstChart(deptBranches[0]);
     }
   }, 100);
 };
