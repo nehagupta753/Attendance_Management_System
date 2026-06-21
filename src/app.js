@@ -188,20 +188,32 @@ window.getDeptBranches = (deptName) => {
   return branches.length > 0 ? branches : [deptName];
 };
 
-window.getBranchSectionsList = (branch) => {
+window.getBranchSectionsList = (branch, year = null) => {
   const classes = currentState.classes || [];
-  const matching = branch ? classes.filter((c) => c.branch === branch) : classes;
+  let matching = branch ? classes.filter((c) => c.branch === branch) : classes;
+  if (year) {
+    matching = matching.filter((c) => c.year === year);
+  }
   const secs = [...new Set(matching.map((c) => String(c.section)))];
-  return secs.sort((a, b) => parseInt(a) - parseInt(b));
+  return secs.sort((a, b) => {
+    const numA = parseInt(a);
+    const numB = parseInt(b);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    }
+    return String(a).localeCompare(String(b));
+  });
 };
 
 window.updateManualSectionOptions = () => {
   const branchEl = document.getElementById("sel-branch");
+  const yearEl = document.getElementById("sel-year");
   const sectionEl = document.getElementById("sel-section");
   if (!branchEl || !sectionEl) return;
   const branch = branchEl.value;
+  const year = yearEl ? yearEl.value : null;
   const currentVal = sectionEl.value;
-  const secs = window.getBranchSectionsList(branch);
+  const secs = window.getBranchSectionsList(branch, year);
   let html = `<option value="" disabled selected>Select Section</option>`;
   secs.forEach((s) => {
     html += `<option value="${s}" ${currentVal === s ? "selected" : ""}>${s}</option>`;
@@ -3314,6 +3326,7 @@ window.populateMarkAttendanceForm = (
 ) => {
   document.getElementById("sel-year").value = year;
   document.getElementById("sel-branch").value = branch;
+  window.updateManualSectionOptions();
   document.getElementById("sel-section").value = section;
   if (document.getElementById("header-year"))
     document.getElementById("header-year").value = year;
@@ -3573,8 +3586,10 @@ async function renderMarkAttendance(container) {
         form.style.display = "block";
         if (selManual.year)
           document.getElementById("sel-year").value = selManual.year;
-        if (selManual.branch)
+        if (selManual.branch) {
           document.getElementById("sel-branch").value = selManual.branch;
+          window.updateManualSectionOptions();
+        }
         if (selManual.section)
           document.getElementById("sel-section").value = selManual.section;
         if (selManual.type) {
@@ -3745,7 +3760,7 @@ async function renderMarkAttendance(container) {
                 </div>
                 <div class="form-group">
                     <label>Year</label>
-                    <select id="sel-year" required onchange="window.onManualFormChange()">
+                    <select id="sel-year" required onchange="window.updateManualSectionOptions(); window.onManualFormChange()">
                         <option value="" disabled selected>Select Year</option>
                         <option value="1st">1st</option>
                         <option value="2nd">2nd</option>
