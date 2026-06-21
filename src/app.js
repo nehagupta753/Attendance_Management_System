@@ -8135,10 +8135,11 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
       : 0;
   const grandAbsent = grandTotal - grandPresent;
   let below75Count = 0;
+  let subjectwiseData = [];
   if (studentIds.length > 0) {
     const { data: classRecords } = await supabaseClient
       .from("attendance_records")
-      .select("student_id, status")
+      .select("student_id, status, subject_id")
       .in("student_id", studentIds);
 
     const studentAttendance = {};
@@ -8163,6 +8164,20 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
           below75Count++;
         }
       }
+    });
+
+    subjects.forEach((sub) => {
+      const subRecs = classRecords ? classRecords.filter((r) => r.subject_id === sub.id) : [];
+      const total = subRecs.length;
+      const present = subRecs.filter((r) => r.status === "Present").length;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+      subjectwiseData.push({
+        code: sub.code,
+        name: sub.name,
+        present,
+        total,
+        pct,
+      });
     });
   }
   window.exportToCSV = () => {
@@ -8295,6 +8310,28 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
 
   const activeTrend = currentState.coordTrendType || "Weekly";
 
+  let overallPct = 0;
+  let displayLabel = "";
+  let displayPresent = 0;
+  let displayAbsent = 0;
+
+  if (activeTrend === "Daily") {
+    displayPresent = grandPresent;
+    displayAbsent = grandAbsent;
+    overallPct = grandTotal > 0 ? parseFloat(((grandPresent / grandTotal) * 100).toFixed(1)) : 0;
+    displayLabel = `Attendance for ${displayDayStr}`;
+  } else if (activeTrend === "Weekly") {
+    displayPresent = weekPresent;
+    displayAbsent = weekAbsent;
+    overallPct = weekTotal > 0 ? parseFloat(((weekPresent / weekTotal) * 100).toFixed(1)) : 0;
+    displayLabel = `Weekly Avg (${new Date(weekRange.start).toLocaleDateString("en-US", { day: "2-digit", month: "short" })} - ${new Date(weekRange.end).toLocaleDateString("en-US", { day: "2-digit", month: "short" })})`;
+  } else {
+    displayPresent = monthPresent;
+    displayAbsent = monthAbsent;
+    overallPct = monthTotal > 0 ? parseFloat(((monthPresent / monthTotal) * 100).toFixed(1)) : 0;
+    displayLabel = `Monthly Avg (${new Date(todayDate).toLocaleDateString("en-US", { month: "long", year: "numeric" })})`;
+  }
+
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; font-family: 'Outfit', sans-serif; background: #fafcff; padding: 1.5rem; border-radius: 1rem;">
         
@@ -8302,18 +8339,21 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h2 style="font-size: 1.65rem; font-weight: 700; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                    Good Afternoon, ${teacher?.name || "Coordinator"} 👋
+                    Welcome back, ${teacher?.name || "Coordinator"} 👋
                 </h2>
-                <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Here's your academic overview for today.</p>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Here's today's overview and academic metrics for your class.</p>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; background: rgba(0, 51, 102, 0.05); padding: 0.45rem 0.85rem; border-radius: 0.5rem; border: 1px solid rgba(0, 51, 102, 0.15);">
-                    Coordinator: ${coordClassLabel}
+                    Class: ${coordClassLabel}
+                </div>
+                <div id="coord-live-clock" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                    ${displayDayStr}
                 </div>
             </div>
         </div>
 
-        <!-- Overview Row (Redesigned like the 2nd Image) -->
+        <!-- Overview Row (5 cards) -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
             <!-- Card 1 -->
             <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
@@ -8337,18 +8377,18 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                 </div>
             </div>
 
-            <!-- Card 3 (Dark Navy Theme Color matching the 2nd Image) -->
+            <!-- Card 3 -->
             <div style="background: var(--primary); border: none; border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow); color: #ffffff; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                     <span style="font-size: 0.72rem; color: rgba(255, 255, 255, 0.8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Today's Attendance</span>
                     <i data-lucide="trending-up" style="width: 16px; height: 16px; color: #10b981;"></i>
                 </div>
                 <div style="font-size: 1.95rem; font-weight: 800; color: #ffffff; line-height: 1; margin-top: 1rem;">
-                    ${overallPct}%
+                    ${activeTrend === 'Daily' ? overallPct : (grandTotal > 0 ? parseFloat(((grandPresent / grandTotal) * 100).toFixed(1)) : 0)}%
                 </div>
             </div>
 
-            <!-- Card 4 (Red Title matching the 2nd Image) -->
+            <!-- Card 4 -->
             <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                     <span style="font-size: 0.72rem; color: #ef4444; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Below 75%</span>
@@ -8369,261 +8409,233 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
                     ${grandAbsent}
                 </div>
             </div>
-
-            <!-- Card 6 -->
-            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';" onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance')">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Pending Submissions</span>
-                    <i data-lucide="file-text" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
-                </div>
-                <div style="font-size: 1.95rem; font-weight: 800; color: var(--text-main); line-height: 1; margin-top: 1rem;">
-                    ${pendingSubmissions}
-                </div>
-            </div>
         </div>
 
-        <!-- Main Workspace Grid -->
+        <!-- Middle Row (Trends & Submissions) -->
         <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 1.5rem; align-items: start;">
-            
-            <!-- Left Column -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                
-                <!-- Attendance Trend Chart -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Attendance Trend</h3>
+            <!-- Attendance Trends Card -->
+            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Attendance Trends</h3>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="date" id="coord-dashboard-date" value="${todayDate}" onchange="window.changeCoordDate(this.value)" style="padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; color: var(--text-main); outline: none; cursor: pointer;">
                         <div style="display: flex; background: rgba(0,0,0,0.03); border-radius: 20px; padding: 0.2rem; gap: 0.2rem; border: 1px solid var(--border);">
                             <button onclick="window.switchCoordTrend('Daily')" style="background: ${activeTrend === 'Daily' ? 'var(--primary)' : 'transparent'}; color: ${activeTrend === 'Daily' ? '#ffffff' : 'var(--text-muted)'}; border: none; padding: 0.25rem 0.75rem; font-size: 0.72rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s;">Daily</button>
                             <button onclick="window.switchCoordTrend('Weekly')" style="background: ${activeTrend === 'Weekly' ? 'var(--primary)' : 'transparent'}; color: ${activeTrend === 'Weekly' ? '#ffffff' : 'var(--text-muted)'}; border: none; padding: 0.25rem 0.75rem; font-size: 0.72rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s;">Weekly</button>
                             <button onclick="window.switchCoordTrend('Monthly')" style="background: ${activeTrend === 'Monthly' ? 'var(--primary)' : 'transparent'}; color: ${activeTrend === 'Monthly' ? '#ffffff' : 'var(--text-muted)'}; border: none; padding: 0.25rem 0.75rem; font-size: 0.72rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s;">Monthly</button>
                         </div>
                     </div>
-                    <div style="height: 200px; position: relative; width: 100%;">
-                        <canvas id="coord-attendance-trend-chart"></canvas>
+                </div>
+
+                <!-- Subtabs -->
+                <div style="display: flex; justify-content: center; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 0.5rem;">
+                    <button onclick="window.switchCoordSubTab('trend', 'combined')" class="coord-sub-tab" data-parent="trend" data-sub="combined" style="background: #003366; color: #ffffff; border: none; padding: 0.35rem 1rem; font-size: 0.72rem; font-weight: 700; border-radius: 20px; cursor: pointer; transition: all 0.2s;">Combined</button>
+                    <button onclick="window.switchCoordSubTab('trend', 'subjectwise')" class="coord-sub-tab" data-parent="trend" data-sub="subjectwise" style="background: none; color: var(--text-muted); border: none; padding: 0.35rem 1rem; font-size: 0.72rem; font-weight: 700; border-radius: 20px; cursor: pointer; transition: all 0.2s;">Subjectwise</button>
+                </div>
+
+                <!-- Combined Content (Radial Gauge) -->
+                <div id="coord-trend-combined" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">${displayLabel}</span>
+                    <div style="position: relative; width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; margin-top: 0.5rem;">
+                        <svg width="130" height="130" viewBox="0 0 130 130" style="transform: rotate(-90deg);">
+                            <circle cx="65" cy="65" r="54" fill="transparent" stroke="var(--border)" stroke-width="10" />
+                            <circle cx="65" cy="65" r="54" fill="transparent" stroke="#003366" stroke-width="10" 
+                                stroke-dasharray="339.3" 
+                                stroke-dashoffset="${339.3 - (339.3 * overallPct) / 100}" 
+                                stroke-linecap="round" 
+                                style="transition: stroke-dashoffset 0.5s ease-in-out;" />
+                        </svg>
+                        <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${overallPct}%</span>
+                            <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Present</span>
+                        </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
-                        <!-- Highest -->
-                        <div style="background: rgba(16, 185, 129, 0.04); border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
-                            <span style="color: #10b981; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Highest</span>
-                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-top: 0.1rem;">
-                                <strong style="color: var(--text-main); font-size: 1.15rem; font-weight: 800;" id="coord-trend-highest">-%</strong>
-                                <span style="color: var(--text-muted); font-size: 0.65rem;" id="coord-trend-highest-sub">on 17 Jun</span>
-                            </div>
+                    <div style="display: flex; gap: 1.5rem; font-size: 0.75rem; font-weight: 600; margin-top: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem; color: var(--text-main);">
+                            <span style="width: 8px; height: 8px; background: #003366; border-radius: 50%; display: inline-block;"></span>
+                            Present (${displayPresent})
                         </div>
-                        <!-- Average -->
-                        <div style="background: rgba(59, 130, 246, 0.04); border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
-                            <span style="color: #3b82f6; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Average</span>
-                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-top: 0.1rem;">
-                                <strong style="color: var(--text-main); font-size: 1.15rem; font-weight: 800;" id="coord-trend-average">-%</strong>
-                                <span style="color: var(--text-muted); font-size: 0.65rem;" id="coord-trend-average-sub">this week</span>
-                            </div>
-                        </div>
-                        <!-- Lowest -->
-                        <div style="background: rgba(239, 68, 68, 0.04); border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
-                            <span style="color: #ef4444; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Lowest</span>
-                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-top: 0.1rem;">
-                                <strong style="color: var(--text-main); font-size: 1.15rem; font-weight: 800;" id="coord-trend-lowest">-%</strong>
-                                <span style="color: var(--text-muted); font-size: 0.65rem;" id="coord-trend-lowest-sub">on 14 Jun</span>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem; color: var(--text-main);">
+                            <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block;"></span>
+                            Absent (${displayAbsent})
                         </div>
                     </div>
                 </div>
 
-                <!-- MST Marks Sheet Table -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">
-                            MST Marks & Underperforming Students (${coordClassLabel})
-                        </h3>
-                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                            <div style="display: flex; background: rgba(0,0,0,0.03); border-radius: 6px; padding: 0.2rem; gap: 0.2rem; border: 1px solid var(--border);">
-                                <button onclick="window.switchCoordMstType('mst-1')" style="background: ${activeMst === "mst-1" ? "var(--primary)" : "transparent"}; color: ${activeMst === "mst-1" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; border-radius: 4px; cursor: pointer;">MST-1</button>
-                                <button onclick="window.switchCoordMstType('mst-2')" style="background: ${activeMst === "mst-2" ? "var(--primary)" : "transparent"}; color: ${activeMst === "mst-2" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; border-radius: 4px; cursor: pointer;">MST-2</button>
+                <!-- Subjectwise Content -->
+                <div id="coord-trend-subjectwise" style="display: none; flex-direction: column; gap: 0.75rem; max-height: 220px; overflow-y: auto; padding: 0.25rem;">
+                    ${subjectwiseData.length === 0 ? `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No subject attendance records.</div>
+                    ` : subjectwiseData.map((s) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: #fafafa;">
+                            <div style="display: flex; flex-direction: column; gap: 0.1rem; text-align: left;">
+                                <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">${s.code}</span>
+                                <span style="font-size: 0.65rem; color: var(--text-muted);">${s.name}</span>
                             </div>
-                            
-                            <div style="position: relative; width: 140px;">
-                                <i data-lucide="search" style="position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: var(--text-muted);"></i>
-                                <input type="text" id="coord-mst-search" placeholder="Search student..." oninput="window.filterCoordMstTable()" style="padding: 0.35rem 0.5rem 0.35rem 1.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; width: 100%; outline: none; background: #ffffff;">
+                            <div style="text-align: right; display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 500;">
+                                    ${s.present}/${s.total} Lect
+                                </div>
+                                <strong style="font-size: 0.8rem; font-weight: 800; color: ${s.pct < 75 ? '#ef4444' : '#10b981'};">
+                                    ${s.pct}%
+                                </strong>
                             </div>
-                            
-                            <select id="coord-mst-subject-filter" onchange="window.filterCoordMstTable()" style="padding: 0.35rem 1.25rem 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; background: #ffffff; color: var(--text-main); outline: none; cursor: pointer; height: auto;">
-                                <option value="All">All Subjects</option>
-                                ${subjects.map((sub) => `<option value="${sub.id}">${sub.code}</option>`).join("")}
-                            </select>
-
-                            <button onclick="window.exportCoordToCSV()" class="btn-secondary" style="padding: 0.35rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); background: transparent; color: var(--text-main); cursor: pointer;">
-                                <i data-lucide="download" style="width: 12px; height: 12px;"></i> Export
-                            </button>
                         </div>
-                    </div>
-                    
-                    <div style="overflow-x: auto; max-height: 380px; border: 1px solid var(--border); border-radius: 8px;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--border); background: #f8fafc; position: sticky; top: 0; z-index: 1;">
-                                    <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted);">ROLL NO</th>
-                                    <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted);">NAME</th>
-                                    ${subjects.map((s) => `<th style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--text-muted);" title="${s.name}">${s.code}</th>`).join("")}
-                                    <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: var(--text-muted);">AVERAGE</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coord-mst-table-body">
-                                ${sortedStudents.length === 0 ? `
-                                    <tr><td colspan="${subjects.length + 3}" style="padding: 2rem; text-align: center; color: var(--text-muted);">No student records found.</td></tr>
-                                ` : sortedStudents.map((st) => {
-                                    let totalM = 0;
-                                    let countM = 0;
-                                    const cells = subjects.map((sub) => {
-                                        const m = coordMarksMap[st.id]?.[sub.id];
-                                        if (!m) return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: var(--text-muted);">-</td>`;
-                                        if (m.is_absent) return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: #ef4444; font-weight: 700;">Ab</td>`;
-                                        
-                                        const isBelow = m.marks < passingCriteria;
-                                        const color = isBelow ? "#ef4444" : "#10b981";
-                                        totalM += parseFloat(m.marks || 0);
-                                        countM++;
-                                        return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: ${color}; font-weight: 700;">${m.marks}</td>`;
-                                    }).join("");
-
-                                    const avg = countM > 0 ? (totalM / countM).toFixed(1) : "-";
-                                    return `
-                                        <tr data-name="${st.name}" data-roll="${st.roll_no}" style="border-bottom: 1px solid var(--border);">
-                                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-main); font-size:0.75rem;">${st.roll_no}</td>
-                                            <td style="padding: 0.75rem 1rem; color: var(--text-main); font-weight: 500; font-size:0.75rem;">${st.name}</td>
-                                            ${cells}
-                                            <td style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: var(--primary); font-size:0.75rem;">${avg}</td>
-                                        </tr>
-                                    `;
-                                }).join("")}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.75rem;">
-                        <span>Showing 1 to ${sortedStudents.length} of ${sortedStudents.length} students</span>
-                        <div style="display: flex; gap: 0.25rem;">
-                            <button style="border: 1px solid var(--border); background: #ffffff; padding: 0.25rem 0.5rem; border-radius: 4px; color: var(--text-muted); cursor: not-allowed;"><i data-lucide="chevron-left" style="width: 12px; height: 12px;"></i></button>
-                            <button style="border: 1px solid var(--primary); background: var(--primary); padding: 0.25rem 0.6rem; border-radius: 4px; color: #ffffff; font-weight: 700;">1</button>
-                            <button style="border: 1px solid var(--border); background: #ffffff; padding: 0.25rem 0.5rem; border-radius: 4px; color: var(--text-muted); cursor: not-allowed;"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i></button>
-                        </div>
-                    </div>
+                    `).join("")}
                 </div>
-
             </div>
 
-            <!-- Right Column -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Submission Status Card -->
+            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Submission Status</h3>
+                    <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; cursor: pointer;" onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance')">View All</span>
+                </div>
+
+                <div style="overflow-x: auto; max-height: 220px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.78rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600;">
+                                <th style="padding: 0.5rem 0.25rem;">FACULTY</th>
+                                <th style="padding: 0.5rem 0.25rem;">SUBJECT</th>
+                                <th style="padding: 0.5rem 0.25rem; text-align: center;">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lectureStats.length === 0 ? `
+                                <tr><td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No lectures today.</td></tr>
+                            ` : lectureStats.map((ls, idx) => {
+                                const statusBg = ls.isSubmitted ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.1)";
+                                const statusColor = ls.isSubmitted ? "#10b981" : "#f59e0b";
+                                const statusText = ls.isSubmitted ? "Submitted" : "Pending";
+                                return `
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.02);">
+                                        <td style="padding: 0.6rem 0.25rem; color: var(--primary); font-weight: 600; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ls.teachers || "Faculty"}</td>
+                                        <td style="padding: 0.6rem 0.25rem; color: var(--text-main); font-weight: 500;">${ls.subjectCode}</td>
+                                        <td style="padding: 0.6rem 0.25rem; text-align: center;">
+                                            <span style="font-size: 0.68rem; font-weight: 700; background: ${statusBg}; color: ${statusColor}; padding: 0.2rem 0.45rem; border-radius: 4px; display: inline-block;">
+                                                ${statusText}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join("")}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 0.75rem; text-align: center; font-size: 0.8rem; margin-top: auto;">
+                    <a href="#" onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance'); return false;" style="color: var(--primary); font-weight: 700; text-decoration: none;">View All Submissions →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row (MST Table & Defaulters) -->
+        <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 1.5rem; align-items: start;">
+            <!-- MST Marks Sheet Card -->
+            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                        MST Marks & Underperforming Students (${coordClassLabel})
+                    </h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; background: rgba(0,0,0,0.03); border-radius: 6px; padding: 0.2rem; gap: 0.2rem; border: 1px solid var(--border);">
+                            <button onclick="window.switchCoordMstType('mst-1')" style="background: ${activeMst === "mst-1" ? "var(--primary)" : "transparent"}; color: ${activeMst === "mst-1" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; border-radius: 4px; cursor: pointer;">MST-1</button>
+                            <button onclick="window.switchCoordMstType('mst-2')" style="background: ${activeMst === "mst-2" ? "var(--primary)" : "transparent"}; color: ${activeMst === "mst-2" ? "#ffffff" : "var(--text-muted)"}; border: none; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 700; border-radius: 4px; cursor: pointer;">MST-2</button>
+                        </div>
+                        
+                        <div style="position: relative; width: 140px;">
+                            <i data-lucide="search" style="position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: var(--text-muted);"></i>
+                            <input type="text" id="coord-mst-search" placeholder="Search student..." oninput="window.filterCoordMstTable()" style="padding: 0.35rem 0.5rem 0.35rem 1.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; width: 100%; outline: none; background: #ffffff;">
+                        </div>
+                        
+                        <select id="coord-mst-subject-filter" onchange="window.filterCoordMstTable()" style="padding: 0.35rem 1.25rem 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; background: #ffffff; color: var(--text-main); outline: none; cursor: pointer; height: auto;">
+                            <option value="All">All Subjects</option>
+                            ${subjects.map((sub) => `<option value="${sub.id}">${sub.code}</option>`).join("")}
+                        </select>
+                    </div>
+                </div>
                 
-                <!-- Submission Status -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Submission Status</h3>
-                        <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; cursor: pointer;" onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance')">View All</span>
-                    </div>
+                <div style="overflow-x: auto; max-height: 380px; border: 1px solid var(--border); border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border); background: #f8fafc; position: sticky; top: 0; z-index: 1;">
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted);">ROLL NO</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted);">NAME</th>
+                                ${subjects.map((s) => `<th style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--text-muted);" title="${s.name}">${s.code}</th>`).join("")}
+                                <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: var(--text-muted);">AVERAGE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coord-mst-table-body">
+                            ${sortedStudents.length === 0 ? `
+                                <tr><td colspan="${subjects.length + 3}" style="padding: 2rem; text-align: center; color: var(--text-muted);">No student records found.</td></tr>
+                            ` : sortedStudents.map((st) => {
+                                let totalM = 0;
+                                let countM = 0;
+                                const cells = subjects.map((sub) => {
+                                    const m = coordMarksMap[st.id]?.[sub.id];
+                                    if (!m) return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: var(--text-muted);">-</td>`;
+                                    if (m.is_absent) return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: #ef4444; font-weight: 700;">Ab</td>`;
+                                    
+                                    const isBelow = m.marks < passingCriteria;
+                                    const color = isBelow ? "#ef4444" : "#10b981";
+                                    totalM += parseFloat(m.marks || 0);
+                                    countM++;
+                                    return `<td style="padding: 0.65rem 0.5rem; text-align: center; color: ${color}; font-weight: 700;">${m.marks}</td>`;
+                                }).join("");
 
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.78rem;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600;">
-                                    <th style="padding: 0.5rem 0.25rem;">FACULTY</th>
-                                    <th style="padding: 0.5rem 0.25rem;">SUBJECT</th>
-                                    <th style="padding: 0.5rem 0.25rem; text-align: center;">STATUS</th>
-                                    <th style="padding: 0.5rem 0.25rem; text-align: right;">LAST UPDATED</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${lectureStats.length === 0 ? `
-                                    <tr><td colspan="4" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No lectures today.</td></tr>
-                                ` : lectureStats.map((ls, idx) => {
-                                    const statusBg = ls.isSubmitted ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.1)";
-                                    const statusColor = ls.isSubmitted ? "#10b981" : "#f59e0b";
-                                    const statusText = ls.isSubmitted ? "Submitted" : "Pending";
-                                    return `
-                                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.02);">
-                                            <td style="padding: 0.6rem 0.25rem; color: var(--primary); font-weight: 600; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ls.teachers || "Faculty"}</td>
-                                            <td style="padding: 0.6rem 0.25rem; color: var(--text-main); font-weight: 500;">${ls.subjectCode}</td>
-                                            <td style="padding: 0.6rem 0.25rem; text-align: center;">
-                                                <span style="font-size: 0.68rem; font-weight: 700; background: ${statusBg}; color: ${statusColor}; padding: 0.2rem 0.45rem; border-radius: 4px; display: inline-block;">
-                                                    ${statusText}
-                                                </span>
-                                            </td>
-                                            <td style="padding: 0.6rem 0.25rem; text-align: right; color: var(--text-muted); font-size: 0.72rem;">Today, 12:00 PM</td>
-                                        </tr>
-                                    `;
-                                }).join("")}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="border-top: 1px solid var(--border); padding-top: 0.75rem; text-align: center; font-size: 0.8rem;">
-                        <a href="#" onclick="if(currentState.coordAttendanceFilters) { currentState.coordAttendanceFilters.date = window._selectedCoordDateStr || ''; } window.switchView('coordEditAttendance'); return false;" style="color: var(--primary); font-weight: 700; text-decoration: none;">View All Submissions →</a>
-                    </div>
+                                const avg = countM > 0 ? (totalM / countM).toFixed(1) : "-";
+                                return `
+                                    <tr data-name="${st.name}" data-roll="${st.roll_no}" style="border-bottom: 1px solid var(--border);">
+                                        <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-main); font-size:0.75rem;">${st.roll_no}</td>
+                                        <td style="padding: 0.75rem 1rem; color: var(--text-main); font-weight: 500; font-size:0.75rem;">${st.name}</td>
+                                        ${cells}
+                                        <td style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: var(--primary); font-size:0.75rem;">${avg}</td>
+                                    </tr>
+                                `;
+                            }).join("")}
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- Defaulters Card -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="font-size: 0.95rem; font-weight: 700; color: #ef4444; margin: 0; display: flex; align-items: center; gap: 0.3rem;">
-                            ⚠️ Defaulters (Marks < ${passingCriteria})
-                        </h3>
-                        <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; cursor: pointer;" onclick="window.switchView('coordAllStudents')">View All</span>
-                    </div>
-                    <div style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
-                        ${defaultersList.length === 0 ? `
-                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All students meet criteria! 🎉</div>
-                        ` : defaultersList.slice(0, 5).map((d) => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem; border-radius: 8px; background: rgba(239, 68, 68, 0.01); border: 1px solid rgba(239, 68, 68, 0.08);">
-                                <div style="display: flex; align-items: center; gap: 0.75rem; text-align: left;">
-                                    <div style="background: rgba(0,51,102,0.05); color: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">
-                                        ${d.student.name.split(" ").map(w => w[0]).slice(0, 2).join("")}
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 0.1rem;">
-                                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">${d.student.name}</span>
-                                        <span style="font-size: 0.68rem; color: var(--text-muted);">Subject: <span style="font-weight: 600; color: var(--primary);">${d.subject.code}</span></span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 500;">Marks</div>
-                                        <strong style="font-size: 0.8rem; font-weight: 800; color: #ef4444;">${d.marks}</strong>
-                                    </div>
-                                    <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                                </div>
-                            </div>
-                        `).join("")}
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.75rem;">
+                    <span>Showing 1 to ${sortedStudents.length} of ${sortedStudents.length} students</span>
                 </div>
-
-                <!-- Quick Actions Card -->
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Quick Actions</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                        <!-- Action 1 -->
-                        <div onclick="window.switchView('markAttendance')" style="background: rgba(99, 102, 241, 0.04); border: 1px dashed rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.08)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.04)'">
-                            <i data-lucide="check-square" style="width: 20px; height: 20px; color: #6366f1;"></i>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: #6366f1;">Mark Attendance</span>
-                        </div>
-                        <!-- Action 2 -->
-                        <div onclick="window.exportCoordToCSV()" style="background: rgba(16, 185, 129, 0.04); border: 1px dashed rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.08)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.04)'">
-                            <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px; color: #10b981;"></i>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: #10b981;">Generate Report</span>
-                        </div>
-                        <!-- Action 3 -->
-                        <div onclick="window.switchView('viewMstTimetable')" style="background: rgba(139, 92, 246, 0.04); border: 1px dashed rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(139, 92, 246, 0.08)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.04)'">
-                            <i data-lucide="calendar" style="width: 20px; height: 20px; color: #8b5cf6;"></i>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: #8b5cf6;">Schedule MST</span>
-                        </div>
-                        <!-- Action 4 -->
-                        <div style="background: rgba(239, 68, 68, 0.04); border: 1px dashed rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.08)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.04)'" onclick="showToast('Notices component coming soon!', 'info')">
-                            <i data-lucide="send" style="width: 20px; height: 20px; color: #ef4444;"></i>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: #ef4444;">Send Notice</span>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
+            <!-- Defaulters Card -->
+            <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.25rem; height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: #ef4444; margin: 0; display: flex; align-items: center; gap: 0.3rem;">
+                        ⚠️ Defaulters (Marks < ${passingCriteria})
+                    </h3>
+                    <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; cursor: pointer;" onclick="window.switchView('coordAllStudents')">View All</span>
+                </div>
+                <div style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${defaultersList.length === 0 ? `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All students meet criteria! 🎉</div>
+                    ` : defaultersList.map((d) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem; border-radius: 8px; background: rgba(239, 68, 68, 0.01); border: 1px solid rgba(239, 68, 68, 0.08);">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; text-align: left;">
+                                <div style="background: rgba(0,51,102,0.05); color: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">
+                                    ${d.student.name.split(" ").map(w => w[0]).slice(0, 2).join("")}
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.1rem;">
+                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">${d.student.name}</span>
+                                    <span style="font-size: 0.68rem; color: var(--text-muted);">Subject: <span style="font-weight: 600; color: var(--primary);">${d.subject.code}</span></span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 500;">Marks</div>
+                                    <strong style="font-size: 0.8rem; font-weight: 800; color: #ef4444;">${d.marks}</strong>
+                                </div>
+                                <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
         </div>
 
     </div>
@@ -8647,111 +8659,27 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
       });
   };
 
-  // Initialize Line Chart for Attendance Trend
+  // Live clock updater for coordinator dashboard
   setTimeout(() => {
-    const trendCtx = document.getElementById("coord-attendance-trend-chart");
-    if (trendCtx && typeof Chart !== "undefined") {
-      let labels = [];
-      let values = [];
-      
-      if (activeTrend === "Daily") {
-        // Daily rate for the last 7 days
-        const dailyMap = new Map();
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split("T")[0];
-          dailyMap.set(dateStr, { total: 0, present: 0 });
-        }
-
-        (weekRecords || []).forEach((r) => {
-          if (dailyMap.has(r.date)) {
-            const item = dailyMap.get(r.date);
-            item.total++;
-            if (r.status === "Present") item.present++;
-          }
+    const clockEl = document.getElementById("coord-live-clock");
+    if (clockEl) {
+      if (window.coordClockInterval) clearInterval(window.coordClockInterval);
+      window.coordClockInterval = setInterval(() => {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         });
-
-        dailyMap.forEach((val, dateStr) => {
-          const label = new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", { day: "2-digit", month: "short" });
-          labels.push(label);
-          const pct = val.total > 0 ? Math.round((val.present / val.total) * 100) : Math.round(85 + Math.random() * 10);
-          values.push(pct);
+        const timeStr = now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
         });
-      } else if (activeTrend === "Weekly") {
-        // Last 6 weeks
-        labels = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"];
-        values = [88, 86, 89, 91, 93, 92];
-      } else {
-        // Monthly: Last 6 months
-        labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-        values = [85, 87, 86, 90, 92, 91];
-      }
-
-      // Calculate stats
-      const maxPct = Math.max(...values);
-      const minPct = Math.min(...values);
-      const avgPct = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
-
-      const highestEl = document.getElementById("coord-trend-highest");
-      const averageEl = document.getElementById("coord-trend-average");
-      const lowestEl = document.getElementById("coord-trend-lowest");
-
-      if (highestEl) highestEl.textContent = `${maxPct}%`;
-      if (averageEl) averageEl.textContent = `${avgPct}%`;
-      if (lowestEl) lowestEl.textContent = `${minPct}%`;
-
-      // Set sub-labels too
-      const highestSub = document.getElementById("coord-trend-highest-sub");
-      const averageSub = document.getElementById("coord-trend-average-sub");
-      const lowestSub = document.getElementById("coord-trend-lowest-sub");
-      
-      if (activeTrend === "Daily") {
-        if (highestSub) highestSub.textContent = "this week";
-        if (averageSub) averageSub.textContent = "average";
-        if (lowestSub) lowestSub.textContent = "this week";
-      } else if (activeTrend === "Weekly") {
-        if (highestSub) highestSub.textContent = "in W5";
-        if (averageSub) averageSub.textContent = "weekly avg";
-        if (lowestSub) lowestSub.textContent = "in W2";
-      } else {
-        if (highestSub) highestSub.textContent = "in May";
-        if (averageSub) averageSub.textContent = "monthly avg";
-        if (lowestSub) lowestSub.textContent = "in Jan";
-      }
-
-      // Render chart
-      new Chart(trendCtx.getContext("2d"), {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "Attendance Rate %",
-            data: values,
-            borderColor: "#3b82f6",
-            backgroundColor: "rgba(59, 130, 246, 0.04)",
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: "#3b82f6",
-            pointBorderColor: "#fff",
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { min: 0, max: 100, ticks: { font: { size: 9 }, callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.03)" } },
-            x: { ticks: { font: { size: 9 } }, grid: { display: false } }
-          }
-        }
-      });
+        clockEl.textContent = `${dateStr} - ${timeStr}`;
+      }, 1000);
     }
-  }, 150);
+  }, 100);
 }
 
 window.showLectureStudentList = (idx, type) => {
