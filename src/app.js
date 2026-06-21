@@ -8129,10 +8129,6 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
   const pendingSubmissions = classesTodayCount - lectureStats.filter((ls) => ls.isSubmitted).length;
   const grandPresent = lectureStats.reduce((s, ls) => s + ls.present, 0);
   const grandTotal = lectureStats.reduce((s, ls) => s + ls.total, 0);
-  const overallPct =
-    grandTotal > 0
-      ? parseFloat(((grandPresent / grandTotal) * 100).toFixed(1))
-      : 0;
   const grandAbsent = grandTotal - grandPresent;
   let below75Count = 0;
   let subjectwiseData = [];
