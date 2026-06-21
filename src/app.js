@@ -7794,6 +7794,54 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
 
   const totalStudentsCount = classStudents.length;
   const studentIds = classStudents.map((s) => s.id);
+
+  const activeMst = currentState.coordActiveMstType || "mst-1";
+
+  const subjects = currentState.subjects.filter(
+    (s) => s.branch === branch
+  );
+
+  let marksData = [];
+  if (studentIds.length > 0) {
+    const { data: mData } = await supabaseClient
+      .from("mst_marks")
+      .select("*")
+      .eq("mst_name", activeMst)
+      .in("student_id", studentIds);
+    marksData = mData || [];
+  }
+
+  const coordMarksMap = {};
+  marksData.forEach((r) => {
+    if (!coordMarksMap[r.student_id]) coordMarksMap[r.student_id] = {};
+    coordMarksMap[r.student_id][r.subject_id] = r;
+  });
+
+  const mstConfig = currentState.mstSettings.find(
+    (s) => s.mst_name === activeMst
+  ) || { total_marks: 40, passing_criteria: 12 };
+  const passingCriteria = mstConfig.passing_criteria;
+
+  const sortedStudents = (classStudents || []).sort((a, b) =>
+    compareRollNumbers(a.roll_no || "", b.roll_no || "")
+  );
+
+  const defaultersList = [];
+  sortedStudents.forEach((st) => {
+    subjects.forEach((sub) => {
+      const m = coordMarksMap[st.id]?.[sub.id];
+      const isAbsent = m?.is_absent;
+      const marks = m?.marks;
+      const isBelow = isAbsent || (marks !== undefined && marks !== null && marks < passingCriteria);
+      if (isBelow) {
+        defaultersList.push({
+          student: st,
+          subject: sub,
+          marks: isAbsent ? "Absent" : marks,
+        });
+      }
+    });
+  });
   const allTodaySlots = currentState.timetable
     .filter(
       (t) =>
@@ -8227,6 +8275,22 @@ async function renderCoordDashboard(container, selectedDateStr = null) {
         }
       }
     });
+  };
+
+  window.switchCoordMstType = (mstType) => {
+    currentState.coordActiveMstType = mstType;
+    const container = document.getElementById("main-content");
+    if (container) {
+      renderCoordDashboard(container, window._selectedCoordDateStr);
+    }
+  };
+
+  window.switchCoordTrend = (trendType) => {
+    currentState.coordTrendType = trendType;
+    const container = document.getElementById("main-content");
+    if (container) {
+      renderCoordDashboard(container, window._selectedCoordDateStr);
+    }
   };
 
   const activeTrend = currentState.coordTrendType || "Weekly";
