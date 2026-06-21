@@ -563,8 +563,7 @@ label {
   letter-spacing: 0.02em;
 }
 
-input:not([type="checkbox"]):not([type="radio"]),
-select {
+input:not([type="checkbox"]):not([type="radio"]) {
   width: 100%;
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(10px);
@@ -576,6 +575,31 @@ select {
   font-family: inherit;
   outline: none;
   font-size: 0.9rem;
+  transition:
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.25s ease;
+}
+
+select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 2rem 0.75rem 1rem !important;
+  color: var(--text-main);
+  font-family: inherit;
+  outline: none;
+  font-size: 0.9rem;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23003366' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.65rem center !important;
+  background-size: 0.85rem !important;
   transition:
     border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
