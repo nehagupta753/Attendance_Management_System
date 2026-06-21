@@ -10760,7 +10760,9 @@ window.updateMstEndTime = (elementInRow) => {
   const row = elementInRow.closest(".mst-subject-row");
   if (!row) return;
 
-  const mstName = document.getElementById("mst-tt-name").value;
+  const mstNameEl = document.getElementById("mst-tt-name");
+  if (!mstNameEl) return;
+  const mstName = mstNameEl.value;
   const mstConfig = currentState.mstSettings.find(
     (s) => s.mst_name === mstName,
   );
@@ -11054,10 +11056,16 @@ window.exportAdminMstTimetableToImage = () => {
 };
 
 window.lockMstTimetable = () => {
-  const mstName = document.getElementById("mst-tt-name").value;
-  const branch = document.getElementById("mst-tt-branch").value;
-  const year = document.getElementById("mst-tt-year").value;
-  const section = document.getElementById("mst-tt-section").value;
+  const mstNameEl = document.getElementById("mst-tt-name");
+  const branchEl = document.getElementById("mst-tt-branch");
+  const yearEl = document.getElementById("mst-tt-year");
+  const sectionEl = document.getElementById("mst-tt-section");
+  if (!mstNameEl || !branchEl || !yearEl || !sectionEl) return;
+
+  const mstName = mstNameEl.value;
+  const branch = branchEl.value;
+  const year = yearEl.value;
+  const section = sectionEl.value;
   if (!mstName || !branch || !year || !section) return;
 
   const lockKey = `mst_tt_locked_${mstName}_${branch}_${year}_${section}`;
@@ -11069,10 +11077,16 @@ window.lockMstTimetable = () => {
 };
 
 window.unlockMstTimetable = () => {
-  const mstName = document.getElementById("mst-tt-name").value;
-  const branch = document.getElementById("mst-tt-branch").value;
-  const year = document.getElementById("mst-tt-year").value;
-  const section = document.getElementById("mst-tt-section").value;
+  const mstNameEl = document.getElementById("mst-tt-name");
+  const branchEl = document.getElementById("mst-tt-branch");
+  const yearEl = document.getElementById("mst-tt-year");
+  const sectionEl = document.getElementById("mst-tt-section");
+  if (!mstNameEl || !branchEl || !yearEl || !sectionEl) return;
+
+  const mstName = mstNameEl.value;
+  const branch = branchEl.value;
+  const year = yearEl.value;
+  const section = sectionEl.value;
   if (!mstName || !branch || !year || !section) return;
 
   const lockKey = `mst_tt_locked_${mstName}_${branch}_${year}_${section}`;
@@ -11085,21 +11099,27 @@ window.unlockMstTimetable = () => {
 };
 
 window.saveMstTimetableFilters = () => {
+  const mstNameEl = document.getElementById("mst-tt-name");
+  const branchEl = document.getElementById("mst-tt-branch");
+  const yearEl = document.getElementById("mst-tt-year");
+  const sectionEl = document.getElementById("mst-tt-section");
+  if (!mstNameEl || !branchEl || !yearEl || !sectionEl) return;
+
   localStorage.setItem(
     "mst_tt_selected_mst",
-    document.getElementById("mst-tt-name").value,
+    mstNameEl.value,
   );
   localStorage.setItem(
     "mst_tt_selected_branch",
-    document.getElementById("mst-tt-branch").value,
+    branchEl.value,
   );
   localStorage.setItem(
     "mst_tt_selected_year",
-    document.getElementById("mst-tt-year").value,
+    yearEl.value,
   );
   localStorage.setItem(
     "mst_tt_selected_section",
-    document.getElementById("mst-tt-section").value,
+    sectionEl.value,
   );
   renderActiveView(); // Force UI refresh so button status updates
 };
@@ -11118,10 +11138,16 @@ window.toggleMstSubjectRow = (checkbox) => {
 };
 
 window.loadMstTimetableScheduler = async () => {
-  const mstName = document.getElementById("mst-tt-name").value;
-  const branch = document.getElementById("mst-tt-branch").value;
-  const year = document.getElementById("mst-tt-year").value;
-  const section = document.getElementById("mst-tt-section").value;
+  const mstNameEl = document.getElementById("mst-tt-name");
+  const branchEl = document.getElementById("mst-tt-branch");
+  const yearEl = document.getElementById("mst-tt-year");
+  const sectionEl = document.getElementById("mst-tt-section");
+  if (!mstNameEl || !branchEl || !yearEl || !sectionEl) return;
+
+  const mstName = mstNameEl.value;
+  const branch = branchEl.value;
+  const year = yearEl.value;
+  const section = sectionEl.value;
 
   if (!branch || !year || !section) {
     showToast("Please select branch, year, and section first", "error");
@@ -11341,10 +11367,16 @@ window.loadMstTimetableScheduler = async () => {
 
 window.saveAllMstSchedules = async (event, classId) => {
   event.preventDefault();
-  const mstName = document.getElementById("mst-tt-name").value;
-  const branch = document.getElementById("mst-tt-branch").value;
-  const year = document.getElementById("mst-tt-year").value;
-  const section = document.getElementById("mst-tt-section").value;
+  const mstNameEl = document.getElementById("mst-tt-name");
+  const branchEl = document.getElementById("mst-tt-branch");
+  const yearEl = document.getElementById("mst-tt-year");
+  const sectionEl = document.getElementById("mst-tt-section");
+  if (!mstNameEl || !branchEl || !yearEl || !sectionEl) return;
+
+  const mstName = mstNameEl.value;
+  const branch = branchEl.value;
+  const year = yearEl.value;
+  const section = sectionEl.value;
 
   const lockKey = `mst_tt_locked_${mstName}_${branch}_${year}_${section}`;
   if (localStorage.getItem(lockKey) === "true") {
