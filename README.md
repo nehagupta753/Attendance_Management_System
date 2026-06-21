@@ -1,10 +1,10 @@
-# 📊 Attendance & Academic Management System (AMS)
+# 📊 Attendance Management System (AMS)
 
-A premium, highly interactive, and responsive web application designed for modern educational institutions. This system provides a **five-tier architecture** with specialized portals for **Students**, **Teachers**, **Class Coordinators**, **Heads of Departments (HODs)**, and **Administrators**, powered by a high-performance **Supabase** backend and styled with a sleek, modern, navy-themed glassmorphic aesthetic.
+A premium, highly interactive, and responsive web application designed for modern educational institutions. This system provides a **three-tier architecture** with specialized portals for **Students**, **Teachers**, and **Administrators**, powered by a high-performance **Supabase** backend and styled with sleek, modern glassmorphic aesthetics.
 
 ---
 
-## ✨ System Portals & Functional Capabilities
+## ✨ Features & Portals
 
 ### 🎓 1. Student Portal (Zero-Credentials Access)
 An instant-access, passwordless dashboard designed to keep students updated on their attendance status in real-time.
@@ -28,29 +28,8 @@ A robust, lightweight tool for educators to log daily attendance and manage sche
   * Deep-dive into specific session details.
   * Instantly update a student's status for a past class (toggles between Present/Absent) with automatic sync.
 
-### 📋 3. Class Coordinator Portal (Classroom Supervision & Exams)
-A specialized workspace for appointed class coordinators to supervise class-wide metrics and manage exams.
-* **5-Card Performance Dashboard**: Instantly tracks:
-  1. **Total Scheduled Lectures**: Total sessions conducted for the selected class.
-  2. **Average Attendance Rate**: Combined class attendance rate.
-  3. **Students Below 75%**: Counts students falling below the mandatory attendance limit.
-  4. **Pending Submissions**: Lectures with scheduled slots that have not yet had attendance logged.
-  5. **Active Mid-Semester Test (MST)**: Showcases details of ongoing MST exam cycles.
-* **Trend Selection**: Toggle class statistics across **Daily**, **Weekly**, or **Monthly** intervals.
-* **Radial Performance Gauge**: Displays a gorgeous progress gauge tracking attendance averages dynamically based on the selected trend.
-* **Subject-Wise Distribution**: Shows comparative attendance rates per subject, with quick alerts for subjects lagging in attendance.
-* **Export to CSV**: Download complete attendance reports for offline records with one click.
-* **MST Exam Scheduler**: Schedule exams, map subjects, select branches, dates, and view timetables with built-in null-safe safeguards.
-
-### 🏢 4. HOD Portal (Departmental Administration)
-An oversight workspace giving Heads of Departments visibility into academic stats across all years and branches of their department.
-* **Department Statistics**: Tracks overall departmental attendance averages.
-* **Subject-Wise Analytics Grid**: Outlines average performance across all subjects.
-* **Class Performance Leaderboard**: View which years and sections are performing best.
-* **Student Directory & Risk Tracking**: Instantly view the names and roll numbers of students who are currently borderline or ineligible due to low attendance.
-
-### 🛡️ 5. Admin Portal (Scoped Institutional Management)
-An enterprise-grade control panel for system configuration and global database management.
+### 🛡️ 3. Admin Portal (Scoped Institutional Management)
+An enterprise-grade control panel for system configuration and department control.
 * **Scope Locking**: A clean workspace architecture requiring administrators to pick a **Department** and **Branch** scope. The system filters all dashboards to match the selection, avoiding workspace visual clutter.
 * **Teacher Management**: Complete profile management including Employee ID, Department, Class Coordinator privilege checkbox, and **Account Status Activation/Deactivation** toggles.
 * **Student Registry**: Manage students and instantly edit their demographic fields (Roll No, Course, Class, etc.).
@@ -62,23 +41,22 @@ An enterprise-grade control panel for system configuration and global database m
 
 ## 🎨 Design System & Aesthetics
 
-Crafted using vanilla **HTML5**, **CSS3**, and **ES6 Javascript** for blazing-fast page loads. No bulky framework overhead.
-* **Color Palette (Modern Navy Theme)**:
-  * Primary/Brand: Dark Navy Blue (`#003366`)
-  * Primary Hover: Deep Navy (`#002244`)
-  * Primary Light: Soft Navy Tint (`rgba(0, 51, 102, 0.08)`)
-  * Text/Main: Gray 800 (`#1f2937`)
-  * Text/Muted: Gray 500 (`#6b7280`)
-  * Glassmorphism: Frosted card layouts (`rgba(255, 255, 255, 0.45)`) with subtle borders, gradients, and backdrop filters.
-* **Typography**: Modern, professional interface using the **Outfit** Google Font.
+Crafted using vanilla **HTML5**, **CSS3**, and **ES6 Javascript** for blazing-fast page loads. No bulky CSS frameworks needed.
+* **Color Palette (Dark Slate Theme)**:
+  * Primary: Indigo (`#6366f1` / `#4f46e5`)
+  * Accent/Active: Teal (`#2dd4bf`)
+  * Error/Inactive: Red (`#ef4444`)
+  * Background: Slate Dark (`#0f172a`)
+  * Glassmorphism: Frosted card layouts (`rgba(30, 41, 59, 0.7)`) with subtle borders and shadows.
+* **Typography**: Clean, professional look utilizing the **Outfit** Google Font.
 * **Icons**: Powered by **Lucide Icons** for sharp, lightweight SVGs.
-* **Smooth Transitions & Animations**: Premium hover micro-interactions, translateY card lift animation, dynamic shadow casting on hover, slide-in/out alert toasts, and spinning page loaders.
+* **Smooth Transitions & Animations**: Hover micro-interactions on cards, slide-in/out alert toasts, spinning loaders, and premium tab transitions.
 
 ---
 
 ## 💾 Database Schema (Supabase PostgreSQL)
 
-The system relies on the following database relationship model:
+The system relies on the following interrelated tables:
 
 ```mermaid
 erDiagram
@@ -100,7 +78,6 @@ erDiagram
 5. **`timetable`**: `id` (PK), `day_of_week`, `start_time`, `end_time`, `teacher_id` (FK), `subject_id` (FK), `class_id` (FK).
 6. **`attendance_records`**: `id` (PK), `student_id` (FK), `teacher_id` (FK), `class_id` (FK), `subject_id` (FK), `date`, `status` (Present/Absent).
 7. **`attendance_submissions`**: `id` (PK), `date`, `teacher_id` (FK), `class_id` (FK).
-8. **`mst_timetable`**: `id` (PK), `mst_type`, `date`, `slot`, `class_id` (FK), `subject_id` (FK).
 
 ---
 
@@ -108,15 +85,13 @@ erDiagram
 
 ### Prerequisites
 * You only need a web browser to run the client-side system.
-* Since the project relies on native ES6 modules (`import`/`export` statements), running a simple local development server is **highly recommended** to avoid local CORS restrictions.
+* Since the project relies on native ES6 modules (`import/export` statements), opening the `index.html` file using the `file://` protocol directly in your browser may trigger CORS restrictions. Running a simple local development server is **highly recommended**.
 
 ### Running Locally
 
 #### Option A: Python Web Server (Fastest & Built-in)
 Open a terminal in the project directory (`attendance system`) and run:
-```bash
-python server.py
-# OR
+```powershell
 python -m http.server 5500
 ```
 Then, open your browser and navigate to:
@@ -126,10 +101,12 @@ Then, open your browser and navigate to:
 1. Install the **Live Server** extension in VS Code.
 2. Right-click `index.html` and choose **"Open with Live Server"**.
 
-#### Option C: Node.js (serve)
+#### Option C: Node.js (http-server / serve)
 If you have Node.js installed, execute:
 ```bash
 npx -y serve -l 5500
+# OR
+npx -y http-server -p 5500
 ```
 And access it at `http://localhost:5500`.
 
@@ -137,17 +114,40 @@ And access it at `http://localhost:5500`.
 
 ## 🛠️ Configuration & Credentials
 
-The connection to the cloud database is pre-configured:
+The connection to the cloud database is pre-configured in `app.js`:
 * **Supabase Project Endpoint**: `https://heoxgbknrnxzhcdolgus.supabase.co`
 * **Publishable API Key**: `sb_publishable_P2YPf-iogij7qNnwcK79XA_YUbJe1Ll`
 
 To swap to your own custom Supabase backend:
-1. Open [src/app.js](file:///c:/Users/yagye/OneDrive/Documents/attendance%20system/src/app.js).
-2. Update the `SUPABASE_URL` and `SUPABASE_KEY` values.
+1. Open [app.js](file:///c:/Users/yagye/OneDrive/Documents/attendance%20system/app.js).
+2. Update the `SUPABASE_URL` and `SUPABASE_KEY` values on lines 2 and 3.
 
 ---
 
 *Made with 💖 for high-performance classroom tracking.*
 
+
+## 🚀 Installation & Execution Steps
+
+1. **Clone the repository:**
+   `ash
+   git clone https://github.com/yourusername/attendance-system.git
+   cd attendance-system
+   `
+
+2. **Run a local web server:**
+   Since this is a vanilla HTML/JS application, you can serve it locally using Python:
+   `ash
+   python server.py
+   `
+   Or using a simple HTTP server:
+   `ash
+   python -m http.server 5500
+   `
+
+3. **Access the application:**
+   Open your web browser and navigate to http://localhost:5500.
+
 ## 📸 Screenshots & Outputs
+
 Screenshots of the application interfaces (Admin Dashboard, HOD Dashboard, Teacher Portal, Student View) can be found in the [screenshots/](./screenshots) directory.
